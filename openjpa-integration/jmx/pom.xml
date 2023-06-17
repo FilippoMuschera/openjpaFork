@@ -28,7 +28,7 @@
     <parent>
         <groupId>org.apache.openjpa</groupId>
         <artifactId>openjpa-integration</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>3.2.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>openjpa-integration-jmx</artifactId>
@@ -74,27 +74,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.apache.openjpa</groupId>
-                                    <artifactId>openjpa-persistence-jdbc</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>test-jar</type>
-                                    <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-                                    <includes>org/apache/openjpa/persistence/test/*.class</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
+                
             </plugin>
 
             <plugin>
@@ -107,15 +87,7 @@
                     <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
                     <!-- persistenceXmlFile>${project.basedir}/src/test/resources/META-INF/persistence.xml</persistenceXmlFile-->
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>enhancer</id>
-                        <phase>process-test-classes</phase>
-                        <goals>
-                            <goal>test-enhance</goal>
-                       </goals>
-                    </execution>
-                </executions>
+                
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.openjpa</groupId>

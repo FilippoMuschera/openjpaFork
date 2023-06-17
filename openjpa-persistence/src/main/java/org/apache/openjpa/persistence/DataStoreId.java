@@ -24,7 +24,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import jakarta.persistence.GenerationType;
+import javax.persistence.GenerationType;
 
 /**
  * Describes how to generate a value for a field.

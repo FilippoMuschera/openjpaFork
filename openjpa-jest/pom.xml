@@ -28,7 +28,7 @@
     <parent>
         <groupId>org.apache.openjpa</groupId>
         <artifactId>openjpa-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>3.2.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>openjpa-jest</artifactId>
@@ -42,9 +42,8 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-            <scope>provided</scope>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jpa_2.2_spec</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.openjpa</groupId>
@@ -81,25 +80,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>process-test-classes</phase>
-                        <configuration>
-                            <target>
-                                <ant antfile="src/main/ant/enhancer.xml" target="enhance" inheritRefs="true">
-                                    <property name="maven.test.skip" value="${maven.test.skip}" />
-                                    <property name="test" value="${test}" />
-                                    <property name="outdir" value="${project.build.outputDirectory}" />
-                                    <property name="project.build.testOutputDirectory" value="${project.build.testOutputDirectory}" />
-                                    <property name="openjpa.Log" value="${openjpa.Log}" />
-                                </ant>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                
             </plugin>
 
         </plugins>

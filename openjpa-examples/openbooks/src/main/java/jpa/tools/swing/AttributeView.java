@@ -15,7 +15,7 @@ package jpa.tools.swing;
 
 import java.awt.Color;
 
-import jakarta.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.Attribute;
 import javax.swing.JLabel;
 
 /**

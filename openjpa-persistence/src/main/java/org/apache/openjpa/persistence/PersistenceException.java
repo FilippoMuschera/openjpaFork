@@ -35,7 +35,7 @@ import org.apache.openjpa.util.Exceptions;
  * @since 0.4.0
  */
 public class PersistenceException
-    extends jakarta.persistence.PersistenceException
+    extends javax.persistence.PersistenceException
     implements Serializable, ExceptionInfo {
 
     

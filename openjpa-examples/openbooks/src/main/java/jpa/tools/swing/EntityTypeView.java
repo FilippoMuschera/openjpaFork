@@ -19,8 +19,8 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.util.List;
 
-import jakarta.persistence.metamodel.Attribute;
-import jakarta.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EntityType;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;

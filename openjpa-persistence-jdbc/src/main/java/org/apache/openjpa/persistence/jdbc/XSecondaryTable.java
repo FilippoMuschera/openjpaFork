@@ -24,7 +24,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import jakarta.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.PrimaryKeyJoinColumn;
 
 /**
  * Extended secondary table.

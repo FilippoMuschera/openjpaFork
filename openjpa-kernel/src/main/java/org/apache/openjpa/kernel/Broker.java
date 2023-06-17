@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.transaction.Synchronization;
+import javax.transaction.Synchronization;
 
 import org.apache.openjpa.ee.ManagedRuntime;
 import org.apache.openjpa.event.CallbackModes;

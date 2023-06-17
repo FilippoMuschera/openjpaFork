@@ -18,18 +18,18 @@ package org.apache.openjpa.persistence.validation;
 
 import java.lang.annotation.ElementType;
 
-import jakarta.persistence.spi.LoadState;
-import jakarta.validation.Path;
-import jakarta.validation.Path.Node;
-import jakarta.validation.TraversableResolver;
+import javax.persistence.spi.LoadState;
+import javax.validation.Path;
+import javax.validation.Path.Node;
+import javax.validation.TraversableResolver;
 
 import org.apache.openjpa.persistence.OpenJPAPersistenceUtil;
 
 /**
  * OpenJPA optimized TraversableResolver Default implementation/behavior asks all discovered providers -
- * jakarta.persistence.Persistence.getPersistenceUtil().isLoaded( traversableObject, traversableProperty.getName());
+ * javax.persistence.Persistence.getPersistenceUtil().isLoaded( traversableObject, traversableProperty.getName());
  *
- * @see jakarta.validation.TraversableResolver
+ * @see javax.validation.TraversableResolver
  */
 public class TraversableResolverImpl implements TraversableResolver {
 
@@ -39,8 +39,8 @@ public class TraversableResolverImpl implements TraversableResolver {
     /* (non-Javadoc) isReachable() is called by the Validator before accessing
      * a property for validation or for cascading.
      *
-     * @see jakarta.validation.TraversableResolver#isReachable(java.lang.Object,
-     *      jakarta.validation.Path.Node, java.lang.Class, jakarta.validation.Path,
+     * @see javax.validation.TraversableResolver#isReachable(java.lang.Object,
+     *      javax.validation.Path.Node, java.lang.Class, javax.validation.Path,
      *      java.lang.annotation.ElementType)
      */
     @Override
@@ -64,8 +64,8 @@ public class TraversableResolverImpl implements TraversableResolver {
      * isReachable() returns true and before a property marked with @Valid
      * is cascaded.
      *
-     * @see jakarta.validation.TraversableResolver#isCascadable(java.lang.Object,
-     *      jakarta.validation.Path.Node, java.lang.Class, jakarta.validation.Path,
+     * @see javax.validation.TraversableResolver#isCascadable(java.lang.Object,
+     *      javax.validation.Path.Node, java.lang.Class, javax.validation.Path,
      *      java.lang.annotation.ElementType)
      */
     @Override

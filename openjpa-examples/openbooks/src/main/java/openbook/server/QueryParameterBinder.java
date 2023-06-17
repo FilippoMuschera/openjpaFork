@@ -13,7 +13,7 @@
 */
 package openbook.server;
 
-import jakarta.persistence.Query;
+import javax.persistence.Query;
 
 /**
  * Decorates a query by binding parameters.

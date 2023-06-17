@@ -21,8 +21,8 @@ package org.apache.openjpa.persistence;
 import java.util.Collection;
 import java.util.Map;
 
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.PessimisticLockScope;
+import javax.persistence.LockModeType;
+import javax.persistence.PessimisticLockScope;
 
 import org.apache.openjpa.kernel.DataCacheRetrieveMode;
 import org.apache.openjpa.kernel.DataCacheStoreMode;

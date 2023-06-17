@@ -20,7 +20,7 @@ package reversemapping;
 
 import java.text.*;
 import java.util.*;
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 
 /**

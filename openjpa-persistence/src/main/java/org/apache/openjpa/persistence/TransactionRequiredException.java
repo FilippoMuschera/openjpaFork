@@ -37,7 +37,7 @@ import org.apache.openjpa.util.UserException;
  * @since 0.4.0
  */
 public class TransactionRequiredException
-    extends jakarta.persistence.TransactionRequiredException
+    extends javax.persistence.TransactionRequiredException
     implements Serializable, ExceptionInfo {
 
     

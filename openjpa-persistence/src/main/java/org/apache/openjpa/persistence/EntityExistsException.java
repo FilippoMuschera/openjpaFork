@@ -36,7 +36,7 @@ import org.apache.openjpa.util.StoreException;
  * @since 0.4.0
  */
 public class EntityExistsException
-    extends jakarta.persistence.EntityExistsException
+    extends javax.persistence.EntityExistsException
     implements Serializable, ExceptionInfo {
 
     

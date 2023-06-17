@@ -378,19 +378,19 @@ public class OpenJPAConfigurationImpl
 
 
         connectionUserName = addString("ConnectionUserName");
-        connectionUserName.addEquivalentKey("jakarta.persistence.jdbc.user");
+        connectionUserName.addEquivalentKey("javax.persistence.jdbc.user");
 
         connectionPassword = addString("ConnectionPassword");
-        connectionPassword.addEquivalentKey("jakarta.persistence.jdbc.password");
+        connectionPassword.addEquivalentKey("javax.persistence.jdbc.password");
         connectionPassword.hide();
 
         encryptionProvider = addPlugin("EncryptionProvider",true);
 
         connectionURL = addString("ConnectionURL");
-        connectionURL.addEquivalentKey("jakarta.persistence.jdbc.url");
+        connectionURL.addEquivalentKey("javax.persistence.jdbc.url");
 
         connectionDriverName = addString("ConnectionDriverName");
-        connectionDriverName.addEquivalentKey("jakarta.persistence.jdbc.driver");
+        connectionDriverName.addEquivalentKey("javax.persistence.jdbc.driver");
 
         connectionFactoryName = addString("ConnectionFactoryName");
         connectionProperties = addString("ConnectionProperties");
@@ -422,7 +422,7 @@ public class OpenJPAConfigurationImpl
         optimizeIdCopy.setDefault("false");
         optimizeIdCopy.set(false);
 
-        databaseAction = addInt("jakarta.persistence.schema-generation.database.action");
+        databaseAction = addInt("javax.persistence.schema-generation.database.action");
         aliases = new String[] {
                 "none", String.valueOf(SchemaGenerationAction.NONE),
                 "create", String.valueOf(SchemaGenerationAction.CREATE),
@@ -433,7 +433,7 @@ public class OpenJPAConfigurationImpl
         databaseAction.setDefault(aliases[0]);
         databaseAction.setAliasListComprehensive(true);
 
-        scriptsAction = addInt("jakarta.persistence.schema-generation.scripts.action");
+        scriptsAction = addInt("javax.persistence.schema-generation.scripts.action");
         aliases = new String[] {
                 "none", String.valueOf(SchemaGenerationAction.NONE),
                 "create", String.valueOf(SchemaGenerationAction.CREATE),
@@ -444,7 +444,7 @@ public class OpenJPAConfigurationImpl
         scriptsAction.setDefault(aliases[0]);
         scriptsAction.setAliasListComprehensive(true);
 
-        createSource = addInt("jakarta.persistence.schema-generation.create-source");
+        createSource = addInt("javax.persistence.schema-generation.create-source");
         aliases = new String[] {
                 "none", String.valueOf(SchemaGenerationSource.NONE),
                 "metadata", String.valueOf(SchemaGenerationSource.METADATA),
@@ -456,7 +456,7 @@ public class OpenJPAConfigurationImpl
         createSource.setDefault(aliases[0]);
         createSource.setAliasListComprehensive(true);
 
-        dropSource = addInt("jakarta.persistence.schema-generation.drop-source");
+        dropSource = addInt("javax.persistence.schema-generation.drop-source");
         aliases = new String[] {
                 "metadata", String.valueOf(SchemaGenerationSource.METADATA),
                 "script", String.valueOf(SchemaGenerationSource.SCRIPT),
@@ -467,11 +467,11 @@ public class OpenJPAConfigurationImpl
         dropSource.setDefault(aliases[0]);
         dropSource.setAliasListComprehensive(true);
 
-        createScriptSource = addString("jakarta.persistence.schema-generation.create-script-source");
-        dropScriptSource = addString("jakarta.persistence.schema-generation.drop-script-source");
-        createScriptTarget = addString("jakarta.persistence.schema-generation.scripts.create-target");
-        dropScriptTarget = addString("jakarta.persistence.schema-generation.scripts.drop-target");
-        loadScriptSource = addString("jakarta.persistence.sql-load-script-source");
+        createScriptSource = addString("javax.persistence.schema-generation.create-script-source");
+        dropScriptSource = addString("javax.persistence.schema-generation.drop-script-source");
+        createScriptTarget = addString("javax.persistence.schema-generation.scripts.create-target");
+        dropScriptTarget = addString("javax.persistence.schema-generation.scripts.drop-target");
+        loadScriptSource = addString("javax.persistence.sql-load-script-source");
 
         autoClear = addInt("AutoClear");
         aliases =
@@ -549,7 +549,7 @@ public class OpenJPAConfigurationImpl
         flushBeforeQueries.setAliasListComprehensive(true);
 
         lockTimeout = addInt("LockTimeout");
-        lockTimeout.addEquivalentKey("jakarta.persistence.lock.timeout");
+        lockTimeout.addEquivalentKey("javax.persistence.lock.timeout");
         lockTimeout.setDefault("-1");
         lockTimeout.setDynamic(true);
 
@@ -636,7 +636,7 @@ public class OpenJPAConfigurationImpl
         addValue(specification);
         specification.setInstantiatingGetter("getSpecificationInstance");
 
-        queryTimeout = addInt("jakarta.persistence.query.timeout");
+        queryTimeout = addInt("javax.persistence.query.timeout");
         queryTimeout.setDefault("-1");
         queryTimeout.setDynamic(true);
 

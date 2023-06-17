@@ -35,7 +35,7 @@ import org.apache.openjpa.util.Exceptions;
  * @since 0.4.0
  */
 public class RollbackException
-    extends jakarta.persistence.RollbackException
+    extends javax.persistence.RollbackException
     implements Serializable, ExceptionInfo {
 
     

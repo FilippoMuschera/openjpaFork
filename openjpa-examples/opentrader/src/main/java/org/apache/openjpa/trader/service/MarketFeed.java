@@ -23,7 +23,7 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import jakarta.persistence.EntityManager;
+import javax.persistence.EntityManager;
 
 import org.apache.openjpa.trader.domain.Stock;
 

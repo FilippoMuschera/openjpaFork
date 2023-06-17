@@ -13,7 +13,7 @@
 */
 package jpa.tools.swing;
 
-import jakarta.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.EntityType;
 import javax.swing.JTable;
 
 public class InstanceView<T> extends JTable {

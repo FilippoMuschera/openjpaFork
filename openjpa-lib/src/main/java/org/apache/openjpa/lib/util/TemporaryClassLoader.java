@@ -55,8 +55,7 @@ public class TemporaryClassLoader extends ClassLoader {
         // "sun." is required for JDK 1.4, which has an access check for
         // sun.reflect.GeneratedSerializationConstructorAccessor1
         if (name.startsWith("java.") || name.startsWith("javax.")
-            || name.startsWith("sun.") || name.startsWith("jdk.")
-            || name.startsWith("jakarta.") ) {
+            || name.startsWith("sun.") || name.startsWith("jdk.")) {
             return Class.forName(name, resolve, getClass().getClassLoader());
         }
 

@@ -27,7 +27,7 @@
     <parent>
         <groupId>org.apache.openjpa</groupId>
         <artifactId>openjpa-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>3.2.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>openjpa-kernel</artifactId>
@@ -42,12 +42,12 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>jakarta.jms</groupId>
-            <artifactId>jakarta.jms-api</artifactId>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jms_1.1_spec</artifactId>
         </dependency>
         <dependency>
-            <groupId>jakarta.transaction</groupId>
-            <artifactId>jakarta.transaction-api</artifactId>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jta_1.1_spec</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -70,20 +70,6 @@
             <groupId>org.apache.xbean</groupId>
             <artifactId>xbean-asm9-shaded</artifactId>
             <version>${xbean.version}</version>
-        </dependency>
-
-        <dependency>
-            <!--
-                This is only used for implementing WASManagedRuntime
-                which implements the
-                com.ibm.websphere.jtaextensions.SynchronizationCallback
-                interface
-            -->
-            <groupId>io.openliberty.api</groupId>
-            <artifactId>io.openliberty.transaction</artifactId>
-            <version>1.1.74</version>
-            <scope>provided</scope>
-            <optional>true</optional>
         </dependency>
     </dependencies>
 
@@ -111,7 +97,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
-          <!--          <execution>
+                    <execution>
                         <id>add-was-interfaces</id>
                         <phase>process-classes</phase>
                         <configuration>
@@ -122,7 +108,7 @@
                         <goals>
                             <goal>run</goal>
                         </goals>
-                    </execution>-->
+                    </execution>
                     <execution>
                         <id>generate-standard-sco-proxies</id>
                         <phase>process-classes</phase>

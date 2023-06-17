@@ -23,9 +23,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import jakarta.persistence.TupleElement;
-import jakarta.persistence.criteria.CompoundSelection;
-import jakarta.persistence.criteria.Selection;
+import javax.persistence.TupleElement;
+import javax.persistence.criteria.CompoundSelection;
+import javax.persistence.criteria.Selection;
 
 import org.apache.openjpa.kernel.FillStrategy;
 import org.apache.openjpa.lib.util.Localizer;
@@ -180,13 +180,13 @@ class CompoundSelections {
      * A compound selection which is a Tuple composed of its component terms.
      *
      */
-    static class Tuple extends CompoundSelectionImpl<jakarta.persistence.Tuple> {
+    static class Tuple extends CompoundSelectionImpl<javax.persistence.Tuple> {
         public Tuple(final Selection<?>[] selections) {
-            super(jakarta.persistence.Tuple.class, selections);
+            super(javax.persistence.Tuple.class, selections);
         }
 
         @Override
-        public FillStrategy<jakarta.persistence.Tuple> getFillStrategy() {
+        public FillStrategy<javax.persistence.Tuple> getFillStrategy() {
             List<Selection<?>> terms = getCompoundSelectionItems();
             TupleFactory factory = new TupleFactory(terms.toArray(new TupleElement[terms.size()]));
             return new FillStrategy.Factory<>(factory, TupleImpl.PUT);
@@ -208,7 +208,7 @@ class CompoundSelections {
             Class<?> resultClass = getJavaType();
             List<Selection<?>> terms = getCompoundSelectionItems();
             FillStrategy<?> strategy = null;
-            if (jakarta.persistence.Tuple.class.isAssignableFrom(resultClass)) {
+            if (javax.persistence.Tuple.class.isAssignableFrom(resultClass)) {
                 TupleFactory factory = new TupleFactory(terms.toArray(new TupleElement[terms.size()]));
                 strategy = new FillStrategy.Factory<>(factory,  TupleImpl.PUT);
            } else if (resultClass == Object.class) {

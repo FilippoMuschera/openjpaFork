@@ -18,22 +18,25 @@
  */
 package org.apache.openjpa.ee;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+
 import javax.naming.Context;
 import javax.naming.InitialContext;
-
-import com.ibm.websphere.jtaextensions.ExtendedJTATransaction;
-import jakarta.transaction.HeuristicMixedException;
-import jakarta.transaction.HeuristicRollbackException;
-import jakarta.transaction.InvalidTransactionException;
-import jakarta.transaction.NotSupportedException;
-import jakarta.transaction.RollbackException;
-import jakarta.transaction.Status;
-import jakarta.transaction.Synchronization;
-import jakarta.transaction.SystemException;
-import jakarta.transaction.Transaction;
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.InvalidTransactionException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.Status;
+import javax.transaction.Synchronization;
+import javax.transaction.SystemException;
+import javax.transaction.Transaction;
 import javax.transaction.xa.XAResource;
 
 import org.apache.openjpa.conf.OpenJPAConfiguration;
+import org.apache.openjpa.enhance.AsmAdaptor;
 import org.apache.openjpa.lib.conf.Configurable;
 import org.apache.openjpa.lib.conf.Configuration;
 import org.apache.openjpa.lib.log.Log;
@@ -41,6 +44,8 @@ import org.apache.openjpa.lib.util.Localizer;
 import org.apache.openjpa.util.InvalidStateException;
 import org.apache.openjpa.util.NoTransactionException;
 
+import serp.bytecode.BCClass;
+import serp.bytecode.Project;
 
 /**
  * {@link ManagedRuntime} implementation that allows synchronization with a
@@ -63,7 +68,9 @@ public class WASManagedRuntime extends AbstractManagedRuntime
     private static final Localizer _loc =
         Localizer.forPackage(WASManagedRuntime.class);
 
-    private com.ibm.websphere.jtaextensions.ExtendedJTATransaction _extendedTransaction = null;
+    private Object _extendedTransaction = null;
+    private Method _getGlobalId = null;
+    private Method _registerSync = null;
     private OpenJPAConfiguration _conf = null;
     private Log _log = null;
 
@@ -72,7 +79,7 @@ public class WASManagedRuntime extends AbstractManagedRuntime
      * wrapper
      */
     @Override
-    public jakarta.transaction.TransactionManager getTransactionManager()
+    public javax.transaction.TransactionManager getTransactionManager()
         throws Exception {
         return new WASTransaction();
     }
@@ -90,8 +97,8 @@ public class WASManagedRuntime extends AbstractManagedRuntime
      * <LI>GetStatus</LI>
      * </UL>
      */
-    class WASTransaction implements jakarta.transaction.TransactionManager,
-        jakarta.transaction.Transaction {
+    class WASTransaction implements javax.transaction.TransactionManager,
+        javax.transaction.Transaction {
 
         @Override
         public int getStatus() throws SystemException {
@@ -130,7 +137,8 @@ public class WASManagedRuntime extends AbstractManagedRuntime
             throws IllegalStateException, RollbackException, SystemException {
             if (_extendedTransaction != null) {
                 try {
-                    _extendedTransaction.registerSynchronizationCallback(new WASSynchronization(arg0));
+                    _registerSync.invoke(_extendedTransaction,
+                        new Object[] { new WASSynchronization(arg0) });
                 } catch (Exception e) {
                     throw new InvalidStateException(_loc
                         .get("was-reflection-exception")).setCause(e);
@@ -149,7 +157,7 @@ public class WASManagedRuntime extends AbstractManagedRuntime
          */
         private byte[] getGlobalId() {
             try {
-                return _extendedTransaction.getGlobalId();
+                return (byte[]) _getGlobalId.invoke(_extendedTransaction, null);
             } catch (Exception e) {
                 throw new InvalidStateException(_loc
                     .get("was-reflection-exception")).setCause(e);
@@ -262,7 +270,7 @@ public class WASManagedRuntime extends AbstractManagedRuntime
 
     /**
      * WASSynchronization wrapper. This class translates the WAS proprietary
-     * synchronization callback methods to jakarta.transaction.Synchronization
+     * synchronization callback methods to javax.transaction.Synchronization
      * methods.
      *
      * <P>
@@ -276,8 +284,9 @@ public class WASManagedRuntime extends AbstractManagedRuntime
      * is instantiated, therefore this class should only be used when running in
      * WebSphere.
      *
+     * @see org.apache.openjpa.util.WASTransformer
      */
-    static class WASSynchronization implements com.ibm.websphere.jtaextensions.SynchronizationCallback {
+    static class WASSynchronization {
 
         Synchronization _sync = null;
 
@@ -287,7 +296,7 @@ public class WASManagedRuntime extends AbstractManagedRuntime
 
         /**
          * AfterCompletion wrapper. Translates the WAS proprietary call to a
-         * jakarta.transaction.Synchronization call.
+         * javax.transaction.Synchronization call.
          */
         public void afterCompletion(int localTransactionId,
             byte[] globalTransactionId, boolean committed) {
@@ -302,7 +311,7 @@ public class WASManagedRuntime extends AbstractManagedRuntime
 
         /**
          * BeforeCompletion wrapper. Translates WAS proprietary call to a
-         * jakarta.transaction.Synchronization call.
+         * javax.transaction.Synchronization call.
          */
         public void beforeCompletion(int arg0, byte[] arg1) {
             if (_sync != null) {
@@ -329,10 +338,22 @@ public class WASManagedRuntime extends AbstractManagedRuntime
         try {
             Context ctx = new InitialContext();
             try {
-                _extendedTransaction = (ExtendedJTATransaction) ctx.lookup("java:comp/websphere/ExtendedJTATransaction");
+                _extendedTransaction =
+                    ctx.lookup("java:comp/websphere/ExtendedJTATransaction");
             } finally {
                 ctx.close();
             }
+
+            Class extendedJTATransaction = Class.forName(
+                    "com.ibm.websphere.jtaextensions.ExtendedJTATransaction");
+            Class synchronizationCallback = Class.forName(
+                    "com.ibm.websphere.jtaextensions.SynchronizationCallback");
+
+            _registerSync = extendedJTATransaction.getMethod(
+                    "registerSynchronizationCallbackForCurrentTran",
+                    new Class[] { synchronizationCallback });
+            _getGlobalId = extendedJTATransaction.
+                getMethod("getGlobalId", null);
         } catch (Exception e) {
             throw new InvalidStateException(_loc
                 .get("was-reflection-exception"), e).setFatal(true);
@@ -358,6 +379,27 @@ public class WASManagedRuntime extends AbstractManagedRuntime
      */
     static final String INTERFACE =
         "com.ibm.websphere.jtaextensions.SynchronizationCallback";
+
+    public static void main(String[] args)
+        throws IOException {
+        Project project = new Project();
+
+        InputStream in = WASManagedRuntime.class.getClassLoader()
+            .getResourceAsStream(CLASS.replace('.', '/') + ".class");
+        BCClass bcClass = project.loadClass(in);
+
+        String [] interfaces = bcClass.getInterfaceNames();
+
+        if(interfaces != null) {
+            for (String anInterface : interfaces) {
+                if (anInterface.equals(INTERFACE)) {
+                    return;
+                }
+            }
+        }
+        bcClass.declareInterface(INTERFACE);
+        AsmAdaptor.write(bcClass);
+    }
 
     @Override
     public void setRollbackOnly(Throwable cause)

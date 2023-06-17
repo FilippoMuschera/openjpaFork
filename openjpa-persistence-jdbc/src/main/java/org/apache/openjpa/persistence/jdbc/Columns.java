@@ -25,7 +25,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import jakarta.persistence.Column;
+import javax.persistence.Column;
 
 /**
  * Allows the specification of multiple columns for complex mappings.

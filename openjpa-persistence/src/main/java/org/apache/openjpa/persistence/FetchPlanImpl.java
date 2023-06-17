@@ -25,8 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.PessimisticLockScope;
+import javax.persistence.LockModeType;
+import javax.persistence.PessimisticLockScope;
 
 import org.apache.openjpa.kernel.DataCacheRetrieveMode;
 import org.apache.openjpa.kernel.DataCacheStoreMode;
@@ -68,9 +68,9 @@ public class FetchPlanImpl
         registerHint(new String[]{"openjpa.MaxFetchDepth", "openjpa.FetchPlan.MaxFetchDepth"},
                 new HintValueConverter.StringToInteger());
         registerHint(new String[]{"openjpa.LockTimeout", "openjpa.FetchPlan.LockTimeout",
-                "jakarta.persistence.lock.timeout"}, new HintValueConverter.StringToInteger());
+                "javax.persistence.lock.timeout"}, new HintValueConverter.StringToInteger());
         registerHint(new String[]{"openjpa.QueryTimeout", "openjpa.FetchPlan.QueryTimeout",
-                "jakarta.persistence.query.timeout"}, new HintValueConverter.StringToInteger());
+                "javax.persistence.query.timeout"}, new HintValueConverter.StringToInteger());
         registerHint(new String[]{"openjpa.FlushBeforeQueries", "openjpa.FetchPlan.FlushBeforeQueries"},
                 new HintValueConverter.StringToInteger(
                    new String[] {"0", "1", "2"},

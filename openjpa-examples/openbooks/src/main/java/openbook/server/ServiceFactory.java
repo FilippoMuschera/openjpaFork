@@ -16,9 +16,9 @@ package openbook.server;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
-import jakarta.persistence.PersistenceContextType;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.PersistenceContextType;
 
 /**
  * A container of persistence units. Typically a JEE container will create, manage and inject

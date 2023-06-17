@@ -19,21 +19,33 @@
 package org.apache.openjpa.ee;
 
 import com.ibm.wsspi.uow.UOWAction;
-import com.ibm.wsspi.uow.UOWManager;
-import com.ibm.wsspi.uow.UOWManagerFactory;
+
+import java.lang.reflect.Method;
 
 /**
  * WASRegistryManagedRuntime provides WebSphere specific extensions to
- * {@link RegistryManagedRuntime}. Currently, these extensions consist of using
- * the WebSphere UOWManager interface to submit non-transactional work.
+ * {@link RegistryManagedRuntime}. Currently these extensions consist of using
+ * the WebSphere UOWManager interface to submit non transactional work.
  */
 public class WASRegistryManagedRuntime extends RegistryManagedRuntime {
 
     // value taken from com.ibm.websphere.uow.UOWSynchronizationRegistry
     private static final int WEBSPHERE_UOW_TYPE_LOCAL_TRANSACTION = 0;
 
+    private final Method getUOWManager;
+    private final Method runUnderUOW;
 
     public WASRegistryManagedRuntime() {
+        try {
+            Class classUOWManagerFactory = Class.forName("com.ibm.wsspi.uow.UOWManagerFactory");
+            getUOWManager = classUOWManagerFactory.getMethod("getUOWManager");
+
+            Class classUOWManager = Class.forName("com.ibm.wsspi.uow.UOWManager");
+            runUnderUOW = classUOWManager.getMethod("runUnderUOW", new Class[]{int.class, boolean.class, UOWAction.class});
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Problem while creating WASManagedRuntime", e);
+        }
     }
 
     /**
@@ -43,10 +55,13 @@ public class WASRegistryManagedRuntime extends RegistryManagedRuntime {
      * </P>
      */
     @Override
-    public void doNonTransactionalWork(Runnable runnable) throws RuntimeException {
+    public void doNonTransactionalWork(Runnable runnable)
+            throws RuntimeException, UnsupportedOperationException {
         try {
-            UOWManager uowManager = UOWManagerFactory.getUOWManager();
-            uowManager.runUnderUOW(WEBSPHERE_UOW_TYPE_LOCAL_TRANSACTION, false, new DelegatingUOWAction(runnable));
+            Object uowManager = getUOWManager.invoke(null);
+
+            runUnderUOW.invoke(uowManager, WEBSPHERE_UOW_TYPE_LOCAL_TRANSACTION, false, new DelegatingUOWAction(runnable));
+
         }
         catch(Exception e ) {
             RuntimeException re = new RuntimeException(e.getMessage(), e);

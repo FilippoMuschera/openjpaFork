@@ -56,7 +56,6 @@ public class GeneratedClasses {
 
     /**
      * Load the class represented by the given bytecode.
-     * @deprecated move to ASM
      */
     public static Class loadBCClass(BCClass bc, ClassLoader loader) {
         BCClassLoader bcloader = AccessController
@@ -68,16 +67,6 @@ public class GeneratedClasses {
             return c;
         } catch (Throwable t) {
             throw new GeneralException(bc.getName()).setCause(t);
-        }
-    }
-
-    public static Class loadAsmClass(String className, byte[] classBytes, Class<?> proxiedClass, ClassLoader loader) {
-        ClassLoaderProxyService pcls = new ClassLoaderProxyService(null, loader);
-        try {
-            return pcls.defineAndLoad(className, classBytes, proxiedClass);
-        } catch (Throwable t) {
-            // this happens e.g when trying to create a proxy for a class with private access.
-            throw new GeneralException(className).setCause(t);
         }
     }
 

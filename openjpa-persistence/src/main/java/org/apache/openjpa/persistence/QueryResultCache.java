@@ -18,7 +18,7 @@
  */
 package org.apache.openjpa.persistence;
 
-import jakarta.persistence.Query;
+import javax.persistence.Query;
 
 import org.apache.openjpa.datacache.QueryCache;
 

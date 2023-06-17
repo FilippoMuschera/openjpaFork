@@ -24,7 +24,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import jakarta.persistence.Column;
+import javax.persistence.Column;
 
 /**
  * Allows override of complex embedded or superclass mappings.

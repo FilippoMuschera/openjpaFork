@@ -13,7 +13,7 @@
 */
 package jpa.tools.swing;
 
-import jakarta.persistence.Query;
+import javax.persistence.Query;
 
 /**
  * Decorates an executable query.

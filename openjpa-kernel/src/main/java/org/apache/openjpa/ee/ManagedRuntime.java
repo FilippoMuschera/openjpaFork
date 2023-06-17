@@ -18,9 +18,9 @@
  */
 package org.apache.openjpa.ee;
 
-import jakarta.transaction.NotSupportedException;
-import jakarta.transaction.SystemException;
-import jakarta.transaction.TransactionManager;
+import javax.transaction.NotSupportedException;
+import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
 
 /**
  * This interface must be implemented by concrete plugins to application

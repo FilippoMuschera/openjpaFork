@@ -26,7 +26,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.concurrent.ConcurrentHashMap;
 
-import jakarta.transaction.NotSupportedException;
+import javax.transaction.NotSupportedException;
 
 import org.apache.openjpa.conf.OpenJPAConfiguration;
 import org.apache.openjpa.jdbc.conf.JDBCConfiguration;

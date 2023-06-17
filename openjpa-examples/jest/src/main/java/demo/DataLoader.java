@@ -21,7 +21,7 @@ package demo;
 
 import java.util.Date;
 
-import jakarta.persistence.EntityManager;
+import javax.persistence.EntityManager;
 
 /**
  * Loads some example Actor-Movie data.

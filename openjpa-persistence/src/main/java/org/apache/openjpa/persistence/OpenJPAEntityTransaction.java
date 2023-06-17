@@ -18,7 +18,7 @@
  */
 package org.apache.openjpa.persistence;
 
-import jakarta.persistence.EntityTransaction;
+import javax.persistence.EntityTransaction;
 
 /**
  * Extension of the JPA {@link EntityTransaction} interface.
@@ -35,8 +35,8 @@ public interface OpenJPAEntityTransaction
      * </pre> except that the entity manager's internal atomic lock is utilized,
      * so this method can be safely executed from multiple threads.
      *
-     * @see jakarta.persistence.EntityTransaction#commit()
-     * @see jakarta.persistence.EntityTransaction#begin()
+     * @see javax.persistence.EntityTransaction#commit()
+     * @see javax.persistence.EntityTransaction#begin()
      */
     void commitAndResume();
 
@@ -46,8 +46,8 @@ public interface OpenJPAEntityTransaction
      * </pre> except that the entity manager's internal atomic lock is utilized,
      * so this method can be safely executed from multiple threads.
      *
-     * @see jakarta.persistence.EntityTransaction#rollback()
-     * @see jakarta.persistence.EntityTransaction#begin()
+     * @see javax.persistence.EntityTransaction#rollback()
+     * @see javax.persistence.EntityTransaction#begin()
      */
     void rollbackAndResume();
 

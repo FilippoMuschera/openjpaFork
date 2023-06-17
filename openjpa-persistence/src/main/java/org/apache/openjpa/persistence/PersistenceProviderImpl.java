@@ -40,13 +40,12 @@ import org.apache.openjpa.persistence.osgi.BundleUtils;
 import org.apache.openjpa.persistence.validation.ValidationUtils;
 import org.apache.openjpa.util.ClassResolver;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.spi.ClassTransformer;
-import jakarta.persistence.spi.LoadState;
-import jakarta.persistence.spi.PersistenceProvider;
-import jakarta.persistence.spi.PersistenceUnitInfo;
-import jakarta.persistence.spi.ProviderUtil;
-
+import javax.persistence.EntityManager;
+import javax.persistence.spi.ClassTransformer;
+import javax.persistence.spi.LoadState;
+import javax.persistence.spi.PersistenceProvider;
+import javax.persistence.spi.PersistenceUnitInfo;
+import javax.persistence.spi.ProviderUtil;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.reflect.InvocationTargetException;
@@ -60,7 +59,7 @@ import java.util.Map;
  * Bootstrapping class that allows the creation of a stand-alone
  * {@link EntityManager}.
  *
- * @see jakarta.persistence.Persistence#createEntityManagerFactory(String,Map)
+ * @see javax.persistence.Persistence#createEntityManagerFactory(String,Map)
  * @published
  */
 public class PersistenceProviderImpl
@@ -233,7 +232,7 @@ public class PersistenceProviderImpl
             return;
         }
 
-        runMap.put("jakarta.persistence.schema-generation.database.action", "create");
+        runMap.put("javax.persistence.schema-generation.database.action", "create");
         final OpenJPAEntityManagerFactory factory = createContainerEntityManagerFactory(info, runMap);
         try {
             synchronizeMappings(factory);
@@ -250,7 +249,7 @@ public class PersistenceProviderImpl
             return false;
         }
 
-        runMap.put("jakarta.persistence.schema-generation.database.action", "create");
+        runMap.put("javax.persistence.schema-generation.database.action", "create");
         final OpenJPAEntityManagerFactory factory = createEntityManagerFactory(persistenceUnitName, runMap);
         try {
             final Object obj = synchronizeMappings(factory);
@@ -263,7 +262,7 @@ public class PersistenceProviderImpl
     // if persistence provider is specific, don't do anything
     // only allowed to process if persistence provider matches or if not provider is specified
     public boolean acceptProvider(final Map properties) {
-        Object provider = properties.get("jakarta.persistence.provider");
+        Object provider = properties.get("javax.persistence.provider");
 
         // provider is specified, so it has to match
         if (provider != null) {
@@ -383,16 +382,12 @@ public class PersistenceProviderImpl
         }
 
         @Override
-        public byte[] transform(ClassLoader cl, String name, Class<?> previousVersion, ProtectionDomain pd, byte[] bytes)
-                throws IllegalClassFormatException {
-            try {
-                return _trans.transform(cl, name, previousVersion, pd, bytes);
-            }
-            catch (IllegalClassFormatException e) {
-                throw e;
-            }
+        public byte[] transform(ClassLoader cl, String name,
+            Class<?> previousVersion, ProtectionDomain pd, byte[] bytes)
+            throws IllegalClassFormatException {
+            return _trans.transform(cl, name, previousVersion, pd, bytes);
         }
-    }
+	}
 
     /**
      * This private worker method will attempt load the PCEnhancerAgent.
@@ -411,7 +406,7 @@ public class PersistenceProviderImpl
 
     /**
      * This private worker method will attempt to setup the proper
-     * LifecycleEventManager type based on if the jakarta.validation APIs are
+     * LifecycleEventManager type based on if the javax.validation APIs are
      * available and a ValidatorImpl is required by the configuration.
      * @throws if validation setup failed and was required by the config
      */

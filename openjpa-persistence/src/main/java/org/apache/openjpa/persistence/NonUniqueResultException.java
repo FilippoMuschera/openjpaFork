@@ -36,7 +36,7 @@ import org.apache.openjpa.util.UserException;
  * @since 0.4.0
  */
 public class NonUniqueResultException
-    extends jakarta.persistence.NonUniqueResultException
+    extends javax.persistence.NonUniqueResultException
     implements Serializable, ExceptionInfo {
 
     

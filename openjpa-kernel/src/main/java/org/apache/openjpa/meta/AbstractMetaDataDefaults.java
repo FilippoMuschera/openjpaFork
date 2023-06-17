@@ -350,11 +350,9 @@ public abstract class AbstractMetaDataDefaults
      * user-defined.
      */
     protected static boolean isUserDefined(Class<?> cls) {
-        return cls != null
-                && !cls.getName().startsWith("java.")
-                && !cls.getName().startsWith ("javax.")
-                && !cls.getName().startsWith ("jakarta.");
-    }
+        return cls != null && !cls.getName().startsWith("java.")
+            && !cls.getName().startsWith ("javax.");
+	}
 
     /**
      * Affirms if the given method matches the following signature

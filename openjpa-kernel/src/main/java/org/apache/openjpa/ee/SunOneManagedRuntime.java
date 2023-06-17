@@ -20,7 +20,7 @@ package org.apache.openjpa.ee;
 
 import java.lang.reflect.Method;
 
-import jakarta.transaction.TransactionManager;
+import javax.transaction.TransactionManager;
 
 /**
  * {@link ManagedRuntime} implementation for SunONE.

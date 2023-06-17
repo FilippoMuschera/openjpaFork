@@ -27,7 +27,7 @@
   <parent>
       <groupId>org.apache.openjpa</groupId>
       <artifactId>openjpa-examples</artifactId>
-      <version>4.0.0-SNAPSHOT</version>
+      <version>3.2.3-SNAPSHOT</version>
   </parent>
 
   <groupId>org.apache.openjpa.openjpa-examples</groupId>
@@ -38,6 +38,7 @@
   <description>Apache OpenJPA Examples - image-gallery</description>
 
   <properties>
+    <test.jvm.maxpermsize>256m</test.jvm.maxpermsize>
     <test.jvm.maxheapsize>1024m</test.jvm.maxheapsize>
     <test.jvm.arguments>-Xmx${test.jvm.maxheapsize}</test.jvm.arguments>
     <surefire.jvm.args>${test.jvm.arguments}</surefire.jvm.args>
@@ -93,15 +94,7 @@
             <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
             <persistenceXmlFile>${project.basedir}/src/test/resources/META-INF/persistence.xml</persistenceXmlFile>
           </configuration>
-          <executions>
-            <execution>
-              <id>enhancer</id>
-              <phase>process-test-classes</phase>
-              <goals>
-                <goal>test-enhance</goal>
-              </goals>
-            </execution>
-          </executions>
+          
           <dependencies>
             <dependency>
               <groupId>org.apache.openjpa</groupId>

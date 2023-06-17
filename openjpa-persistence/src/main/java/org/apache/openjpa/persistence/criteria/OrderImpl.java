@@ -18,8 +18,8 @@
  */
 package org.apache.openjpa.persistence.criteria;
 
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Order;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
 
 /**
  * Ordering clause of a criteria query.

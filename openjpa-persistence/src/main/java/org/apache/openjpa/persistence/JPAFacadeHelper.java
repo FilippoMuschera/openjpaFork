@@ -24,8 +24,8 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.apache.openjpa.enhance.PCRegistry;
 import org.apache.openjpa.kernel.Broker;

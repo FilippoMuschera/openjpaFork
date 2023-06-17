@@ -18,8 +18,8 @@
  */
 package embeddables;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 
 @Embeddable
 public class ContactInfo {
