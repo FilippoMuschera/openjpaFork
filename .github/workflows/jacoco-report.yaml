@@ -1,0 +1,29 @@
+name: Jacoco Report
+
+on:
+  push:
+    branches:
+      - master
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: 8
+          distribution: 'adopt'
+      - name: Run tests
+        run: mvn -P jacoco-profile clean install
+      - name: Archive jacoco coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: jacoco-coverage-report
+          path: jacoco-report/target/site/jacoco-aggregate
+          if-no-files-found: error
