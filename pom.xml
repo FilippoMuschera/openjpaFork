@@ -105,6 +105,8 @@
         <jmock.version>2.9.0</jmock.version>
         <dbcp2.version>2.8.0</dbcp2.version>
 	<pool2.version>2.9.0</pool2.version>
+        <sonar.organization>filippomuschera-1</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.coverage.jacoco.xmlReportPaths>
             ${project.basedir}/jacoco-report/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
@@ -209,6 +211,114 @@
             </activation>
             <properties>
                 <argLine></argLine>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven.surefire.version}</version>
+                        <configuration>
+                            <argLine>@{argLine} ${surefire.jvm.args}</argLine>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <trimStackTrace>false</trimStackTrace>
+                            <useSystemClassLoader>true</useSystemClassLoader>
+                            <excludes>
+                                <!-- exclude classes that include a $; inner classes
+                                     are not test cases per OpenJPA standards -->
+                                <exclude>org/apache/openjpa/**/*$*.class</exclude>
+                            </excludes>
+                            <systemProperties>
+                                <property>
+                                    <name>openjpa.Log</name>
+                                    <value>${openjpa.Log}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.DynamicEnhancementAgent</name>
+                                    <value>${openjpa.DynamicEnhancementAgent}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionDriverName</name>
+                                    <value>${connection.driver.name}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionURL</name>
+                                    <value>${connection.url}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionUserName</name>
+                                    <value>${connection.username}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionPassword</name>
+                                    <value>${connection.password}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.jdbc.DBDictionary</name>
+                                    <value>${jdbc.DBDictionary}</value>
+                                </property>
+                                <property>
+                                    <name>derby.stream.error.file</name>
+                                    <value>target/derby.log</value>
+                                </property>
+                                <property>
+                                    <name>derby.locks.deadlockTimeout</name>
+                                    <value>${derby.locks.deadlockTimeout}</value>
+                                </property>
+                                <property>
+                                    <name>derby.locks.waitTimeout</name>
+                                    <value>${derby.locks.waitTimeout}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionProperties</name>
+                                    <value>${dbcp.args}</value>
+                                </property>
+                                <property>
+                                    <name>tests.openjpa.allowfailure</name>
+                                    <value>${tests.openjpa.allowfailure}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.jdbc.DriverDataSource</name>
+                                    <value>${tests.openjpa.driverDataSource}</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.8</version>
+                        <executions>
+                            <execution>
+                                <id>jacoco-prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>jacoco-site</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+
+        <profile>
+            <!--      Da usare solo per la CI con Sonar tramite GitHub Actions-->
+            <id>sonar-profile</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <argLine></argLine>
+                <java.class.version>11</java.class.version>
+                <java.testclass.version>11</java.testclass.version>
             </properties>
             <build>
                 <plugins>
