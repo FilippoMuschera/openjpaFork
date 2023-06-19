@@ -105,6 +105,9 @@
         <jmock.version>2.9.0</jmock.version>
         <dbcp2.version>2.8.0</dbcp2.version>
 	<pool2.version>2.9.0</pool2.version>
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.basedir}/jacoco-report/target/site/jacoco-aggregate/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <licenses>
