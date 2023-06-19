@@ -39,13 +39,14 @@ import java.util.*;
 import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.*;
 import static org.apache.openjpa.kernel.utility.Values.Parameter.INVALID;
 import static org.apache.openjpa.kernel.utility.Values.Parameter.VALID;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 
 @RunWith(Parameterized.class)
 public class AttachManagerTest {
 
-    BrokerImpl broker;
+    static BrokerImpl broker;
     boolean bool;
     OpCallbacks op;
     Values.ExpectedValue expectedValue;
@@ -54,10 +55,10 @@ public class AttachManagerTest {
 
     public AttachManagerTest(Object brokerParam, boolean newCopy, Object callBack, List<?> toAttachList) {
         //setup del broker
-        if (brokerParam == null) this.broker = null;
+        if (brokerParam == null) broker = null;
         else {
             if (brokerParam == VALID) {
-                validBroker();
+                broker = validBroker(debugTestCounter % 2 == 0 ? 1 : 2); //alterniamo il failFast tra true e false, test uni-dimensionale
             } else {
                 invalidBroker();
             }
@@ -145,7 +146,7 @@ public class AttachManagerTest {
     }
 
     private void invalidBroker() {
-        this.broker = Mockito.mock(BrokerImpl.class);
+        broker = Mockito.mock(BrokerImpl.class);
         //Il broker invalido lancia una generica eccezione unchecked durante l'esecuzione
         Mockito.when(broker.getConfiguration()).thenThrow(new RuntimeException());
         Mockito.when(broker.fireLifecycleEvent(any(), any(), any(), Mockito.anyInt())).thenThrow(new RuntimeException());
@@ -153,21 +154,24 @@ public class AttachManagerTest {
 
     }
 
-    private void validBroker() {
-        this.broker = Mockito.mock(BrokerImpl.class);
+    static BrokerImpl validBroker(int failFast) {
+        BrokerImpl myBroker = Mockito.mock(BrokerImpl.class);
         MetaDataRepository metaDataRepository = Mockito.mock(MetaDataRepository.class);
         MetaDataFactory metaDataFactory = Mockito.mock(MetaDataFactory.class);
         MetaDataDefaults metaDataDefaults = Mockito.mock(MetaDataDefaults.class);
         OpenJPAConfiguration configuration = Mockito.mock(OpenJPAConfiguration.class);
 
-        Mockito.when(broker.getConfiguration()).thenReturn(configuration);
+        Mockito.when(myBroker.getConfiguration()).thenReturn(configuration);
         Mockito.when(configuration.getMetaDataRepositoryInstance()).thenReturn(metaDataRepository);
         Mockito.when(configuration.getProxyManagerInstance()).thenReturn(new ProxyManagerImpl());
         Mockito.when(metaDataRepository.getMetaDataFactory()).thenReturn(metaDataFactory);
         Mockito.when(metaDataFactory.getDefaults()).thenReturn(metaDataDefaults);
-        Mockito.when(metaDataDefaults.getCallbackMode()).thenReturn(2); //così l'and bit-wise fa zero
+        //facciamo "ruotare" il valore di ritorno così da coprire più branch condizionali
+        Mockito.when(metaDataDefaults.getCallbackMode()).thenReturn(failFast);
 
-        Mockito.when(broker.fireLifecycleEvent(any(), any(), any(), Mockito.anyInt())).thenReturn(false);
+        Mockito.when(myBroker.fireLifecycleEvent(any(), any(), any(), Mockito.anyInt())).thenReturn(false);
+
+        return myBroker;
 
     }
 
@@ -180,7 +184,7 @@ public class AttachManagerTest {
         AttachManager attachManager;
         try {
             attachManager = new AttachManager(
-                    this.broker,
+                    broker,
                     this.bool,
                     this.op
 
@@ -216,13 +220,13 @@ public class AttachManagerTest {
                 //Settiamo il mock per la AttachStrategy
                 AttachStrategy mockAttachStrategy = Mockito.mock(AttachStrategy.class);
                 Mockito.when(mockAttachStrategy.attach(attachManager, this.objList, null, null, null, null, true))
-                                .thenReturn(this.objList);
+                               .thenReturn(this.objList);
 
                 PersistenceCapable persistenceCapableMocked = Mockito.mock(PersistenceCapable.class);
                 Mockito.when(persistenceCapableMocked.pcGetStateManager()).thenReturn(null);
                 Mockito.when(persistenceCapableMocked.pcGetDetachedState()).thenReturn(mockAttachStrategy);
 
-                mockedStatic.when(() -> ImplHelper.toPersistenceCapable(this.objList, this.broker.getConfiguration()))
+                mockedStatic.when(() -> ImplHelper.toPersistenceCapable(this.objList, broker.getConfiguration()))
                         .thenReturn(persistenceCapableMocked);
                 mockedStatic.when(() -> ImplHelper.getManagedInstance(any())).thenCallRealMethod();
 
