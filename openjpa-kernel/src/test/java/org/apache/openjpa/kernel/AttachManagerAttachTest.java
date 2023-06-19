@@ -30,12 +30,10 @@ import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.openjpa.kernel.AttachManagerTest.validBroker;
-import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
