@@ -1,0 +1,29 @@
+name: Pit-Mutation Report
+
+on:
+  push:
+    branches:
+      - master
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: 8
+          distribution: 'adopt'
+      - name: Run tests
+        run:  mvn install org.pitest:pitest-maven:mutationCoverage -pl openjpa-kernel -am
+      - name: Archive pit mutation results
+        uses: actions/upload-artifact@v3
+        with:
+          name: pit-mutation-report
+          path: openjpa-kernel/target/pit-reports
+          if-no-files-found: error
