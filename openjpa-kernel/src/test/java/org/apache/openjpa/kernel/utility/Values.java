@@ -23,7 +23,7 @@ package org.apache.openjpa.kernel.utility;
 public class Values {
 
     public enum ExpectedValue {
-        PASSED, EXCEPTION, NP_EXCEPTION, RUNTIME_EXCEPTION
+        PASSED, EXCEPTION, NP_EXCEPTION, RUNTIME_EXCEPTION, IA_EXCEPTION
     }
 
     public enum Parameter {
