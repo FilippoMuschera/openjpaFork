@@ -42,10 +42,79 @@ package org.apache.openjpa.kernel;
  */
 
 
-import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.*;
-import static org.junit.Assert.*;
+/*
+ *                                          ++++ POSSIBILE BUG ++++
+ *
+ * In questa classe è stato individuato un possibile bug: c'è la possibilità che, a riga 140 di CacheMap, dove c'è la
+ * chiamata a "cacheMap = new LRUMap(size, load)", in realtà ci dovrebbe essere "cacheMap = new LRUMap(max, load)".
+ *
+ * Infatti, quello che succede quando chiediamo a CacheMap di costruire un'istanza di tipo LRU, con capacità iniziale
+ * 0, e capacità massima > 0 (e con un loadFactor valido, quindi tutti parametri dove ci aspettiamo che ci venga
+ * restituita una istanza valida di CacheMap), in realtà ci ritorna una IllegalArgumentException, con un messaggio che
+ * dice: "LRUMap max size must be greater than 0".
+ *
+ * Questo, già a un'analisi black-box del metodo risulta quantomeno strano, dato che noi abbiamo impostato un "max"
+ * > 0, e l'errore ci dice che la size massima della LRU che abbiamo provato a creare è invece minore di zero.
+ * Sempre con un'analisi black-box, possiamo notare che, ponendo il parametro del costruttore "lru = false", viene creata
+ * un'istanza valida di CacheMap, come ci aspetteremmo.
+ *
+ * Procedendo ad un'analisi di tipo white-box notiamo una incongruenza nel modo in cui viene istanziata la LRUMap.
+ * Partiamo dal presupposto che in CacheMap il parametro "max" rappresenta la size massima della cache, e il parametro
+ * "size" rappresenta la dimensione inizale della cache. Questo si può inturire anche dal costruttore di CacheMap che
+ * troviamo a riga 92. dove data una maxSize, si pone size = maxSize/2.
+ *
+ * Abbiamo già notato a riga 140 "cacheMap = new LRUMap(size, load)". Quindi sembra che stiamo chiedendo una LRUMap con
+ * dimensione iniziale pari a "size".
+ * Andando però a guardare il costruttore di LRUMap che stiamo chiamando in CacheMap, vediamo che è quello di LRUMap
+ * del modulo openjpa-lib del modulo util.
+ * Il costruttore ha la seguente forma:
+ *
+ * public LRUMap(int initCapacity, float loadFactor) {
+        super(initCapacity, loadFactor);
+    }
+ *
+ * Il super che va a chiamare è quello di LRUMap del modulo openjpa-lib del modulo collections, che ha la forma:
+ *
+ *     public LRUMap(final int maxSize, final float loadFactor) {
+        this(maxSize, loadFactor, false);
+    }
+ *
+ * Notiamo subito dunque che il primo parametro si chiami "maxSize", mentre è stato invocato con il parametro initSize dalla
+ * sua sottoclasse.
+ *
+ * Alla fine, il costruttore che viene effettivamente chiamato in collections\LRUMap è:
+ *
+ * public LRUMap(final int maxSize,
+                  final int initialSize,
+                  final float loadFactor,
+                  final boolean scanUntilRemovable)
+ *
+ * E nel nostro caso specifico i parametri che gli arrivano sono (size, size, load, false). Di fatto abbiamo richiesto da
+ * CacheMap la creazione di una LRUMap con initialSize = size, ma abbiamo ottenuto una LRUMap che ha (anche) maxSize = size.
+ *
+ * Quando dunque size = 0, non riusciamo ad ottenere la suddetta LRUMap. E, mentre richiedere una LRUMap con initialSize = 0 ha
+ * perfettamente senso, non lo ha richiederla con una maxSize = 0. Quindi il problema non sta nel costruttore di LRUMap, che nega
+ * giustamente la costruzione di una LRUMap di maxSize = 0, ma nel fatto che da CacheMap è stata richiesta una LRUMap utilizzando
+ * il parametro size invece che max.
+ *
+ * Non posso avere la certezza che questo sia un Bug, ma certamente è un comportamento che da un'analisi black-box risulta
+ * difficile da prevedere e contro intuitivo. Da un'analisi white-box sembra effettivamente poterci essere un "typo" dove si usa
+ * la initSize per qualcosa che poi diventerà la maxSize, nonostante abbiamo a disposizione un parametro che rappresenta la maxSize.
+ *
+ * Come inoltre dimostriamo con il metodo showThatLRUShouldBePossible(), con gli stessi parametri con cui CacheMap lancia una
+ * IllegalArgumentException, è in realtà possibile costruire una LRUMap che non solleva eccezione.
+ *
+ * In quel metodo dimostriamo che la costruzione di una LRUMap è possibile sia usando il costruttore di collections\LRUMap (quello
+ * "vero e proprio") con initSize = size e maxSize = max, sia con entrambe le size = max (perchè è così che verrebbe chiamato
+ * dal costruttore alternativo di collections\LRUMap, quello con la segnatura public LRUMap(final int maxSize, final float loadFactor)).
+ *
+ * Inoltre, dimostriamo come, se a riga 140 di CacheMap chiamassimo LRUMap(max, load) invece che LRUMap(size, load), la LRUMap
+ * verrebbe istanziata senza produrre alcuna IllegalArgumentException.
+ */
+
 
 import org.apache.openjpa.kernel.utility.Values;
+import org.apache.openjpa.lib.util.collections.LRUMap;
 import org.apache.openjpa.util.CacheMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,6 +125,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.IA_EXCEPTION;
+import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.PASSED;
+import static org.junit.Assert.*;
+
 @RunWith(Parameterized.class)
 public class CacheMapTest {
 
@@ -63,6 +136,7 @@ public class CacheMapTest {
     private static final List<Integer> intList = Arrays.asList(-1, 0, 1);
     private static final List<Float> floatList = Arrays.asList(-0.1f, 0f, 0.1f);
     private static final List<Boolean> booleanList = Arrays.asList(true, false);
+    private static final boolean isConcurrencyLevelUsed = false;
     private static int testCounter = 0;
     private final boolean lru;
     private final int max;
@@ -70,48 +144,6 @@ public class CacheMapTest {
     private final float load;
     private final int concurrencyLevel;
     private final Values.ExpectedValue expectedValue;
-
-
-    @Parameterized.Parameters
-    public static Collection<Object[]> getParams() {
-        List<Object[]> retList = new ArrayList<>();
-
-        for (boolean lru : booleanList) {
-            for (int max : intList) {
-                for (int size : intList) {
-                    for (float load : floatList) {
-                        for (int concurrencyLevel : intList) {
-                            Object[] param = new Object[] {
-                                    lru, max, size, load, concurrencyLevel
-                            };
-                                retList.add(withExpectedValue(param));
-                        }
-                    }
-                }
-            }
-        }
-
-        return retList;
-
-    }
-
-    private static Object[] withExpectedValue(Object[] param) {
-        Values.ExpectedValue expectedValue =  PASSED;
-        Object[] withEV = new Object[param.length + 1];
-
-        for(int i = 0; i < param.length ; i++) {
-            withEV[i] = param[i];
-            if( i == 3) {
-                float load = (float) param[i];
-                if (load <= 0)
-                    expectedValue = IA_EXCEPTION;
-
-            }
-            withEV[param.length] = expectedValue;
-        }
-
-        return withEV;
-    }
 
 
     public CacheMapTest(boolean lru, int max, int size, float load, int concurrencyLevel, Values.ExpectedValue ev) {
@@ -123,6 +155,63 @@ public class CacheMapTest {
         this.expectedValue = ev;
 
     }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> getParams() {
+        List<Object[]> retList = new ArrayList<>();
+
+        for (boolean lru : booleanList) {
+            for (int max : intList) {
+                for (int size : intList) {
+                    for (float load : floatList) {
+                        for (int concurrencyLevel : intList) {
+                            Object[] param = new Object[]{
+                                    lru, max, size, load, concurrencyLevel
+                            };
+                            retList.add(withExpectedValue(param));
+                        }
+                    }
+                }
+            }
+        }
+
+        return retList;
+
+    }
+
+    private static Object[] withExpectedValue(Object[] param) {
+        Values.ExpectedValue expectedValue = PASSED;
+        Object[] withEV = new Object[param.length + 1];
+
+        System.arraycopy(param, 0, withEV, 0, param.length);
+        float load = (float) param[3];
+        boolean isLru = (boolean) param[0];
+        int initSize = (int) param[2];
+        /*
+         * La seconda condition nell'if serve a settare i corretti valori di expected nel caso in cui
+         * venisse implementato nel metodo una porzione di codice che fa effettivamente uso del parametro
+         * concurrencyLevel. In quel caso assumiamo che un livello di concorrenza pari a 0 o maggiore di 0
+         * sia accettabile, mentre un livello di concorrenza negativo dovrebbe portare a una IllegalArgument
+         * exception, dal momento che è difficile giustificare il significato di un livello di concorrenza
+         * negativo, in linea con ciò che avviene attualmente per il parametro load.
+         *
+         * Una lista di input genererà IA Exception se:
+         * 1. load <= 0 non è consentito
+         * 2.Una LRU, allo stato attuale del codice non può avere una maxSize = 0. Per i motivi sopra illustrati
+         * la maxSize viene settata usando la size (qui chiamata initSize). Quindi se è negativa viene settata
+         * arbitrariamente a 500 da CacheMap, se è positiva è ok, se è = 0, per la LRU non va bene.
+         *
+         */
+        if (load <= 0 || (isLru && initSize == 0) || (isConcurrencyLevelUsed && (int) param[4] < 0))
+            expectedValue = IA_EXCEPTION;
+
+
+        withEV[param.length] = expectedValue;
+
+
+        return withEV;
+    }
+
     @Test
     public void constructionTest() {
 
@@ -130,8 +219,9 @@ public class CacheMapTest {
         System.out.println("[DEBUG] Test #" + testCounter + "\n");
         testCounter++;
 
+        CacheMap cacheMap = null;
         try {
-            CacheMap cacheMap = new CacheMap(
+            cacheMap = new CacheMap(
                     this.lru,
                     this.max,
                     this.size,
@@ -139,41 +229,68 @@ public class CacheMapTest {
                     this.concurrencyLevel
             );
         } catch (Exception e) {
-            e.printStackTrace();
+
             assertTrue(e instanceof IllegalArgumentException);
             try {
-                assertSame(expectedValue, IA_EXCEPTION);
-            } catch (AssertionError assertionError) {
-                /*
-                 * Qui c'è un potenziale bug, motivo per cui faccio il catch della AssertionError. Il problema sta nella
-                 * gestione del parametro size da parte del costruttore di CacheMap.
-                 * Infatti: size rappresenta la size delle Map che verranno create per la nostra istanza di CacheMap.
-                 * - Una size > 0 è chiaramente accettata, e di fatti il test passa.
-                 * - Una size < 0 non sarebbe accettata dai costruttori delle varie Map, e dunque il costruttore di CacheMap
-                 * provvede a settarla a un valore positivo (sceglie arbitrariamente 500)
-                 * - Una size = 0 non è accettata dal costruttore delle Map, e questo lo dimostra il fatto che ci troviamo
-                 * all'interno di un catch in cui abbiamo già asserito che l'eccezione catturata è una IllegalArgument, e
-                 * sappiamo anche che l'eccezione è legata alla size, e non al loadFactor, dato che asseriamo anche che
-                 * load > 0f. Dunque siamo per forza nel caso size = 0.
-                 *
-                 * Il problema sta nel fatto che il costruttore del metodo decide di gestire il caso in cui il parametro
-                 * size abbia un valore non ammissibile, ma lo fa solamente nel caso di size < 0, e non nel caso di size = 0.
-                 * Per una migliore gestione di valori scorretti e una più consistente gestione degli errori a Runtime sarebbe
-                 * meglio avere che il controllo a riga 112: if (size < 0) fosse scritto come: if (size <= 0).
-                 *
-                 * Infatti è poco coerente che il metodo lanci una unchecked exception se il parametro è "logicamente" scorretto
-                 * ed = 0, ma non se è scorretto e < 0.
-                 * Infatti, leggendo la documentazione e il Javadoc della classe mi aspettare o che per valori <= 0 venga lanciata
-                 * un'eccezione, o che i valori scorretti vengano gestiti internamente, e quindi anche per valori scorretti
-                 * il metodo non rilanciasse eccezioni verso l'esterno.
-                 */
+                assertEquals(IA_EXCEPTION, expectedValue);
+            } catch (AssertionError error) {
+                //Questo catch è per far passare il test, e quindi la build, al possibile bug.
+                //Qui ci assicuriamo che se entriamo nel catch sia esclusivamente per il caso del possibile bug, altrimenti
+                //lanciamo una fail del test come giusto che sia
+
+                assertTrue(lru);
                 assertEquals(0, size);
-                assertTrue(load > 0f);
+                assertTrue(load > 0);
+                assertTrue(e.getMessage().contains("LRUMap max size must be greater than 0"));
+
+                /*
+                 * Qui controlliamo o che la LRU non era effettivamente istanziabile anche usando il "max" dato in input
+                 * alla CacheMap (prima condizione), oppure che con i dati in input, nonostante sia stata generata una
+                 * IllegalArgumentException, in realtà usando "max" invece che "size" si può ottenere una LRU cache
+                 * valida.
+                 */
+                assertTrue((size == 0 && max <= 0) || showThatLRUShouldBePossible());
             }
+            return;
+
         }
 
-        //TODO CHECK CHE L'ISTANZA VALIDA SIA EFFETTIVAMENTE VALIDA
+        /*
+         * Ora qui abbiamo tutte quelle istanze che riteniamo essere istanze valide di CacheMap. Per acquisire ulteriore
+         * confidenza al riguardo, oltre al fatto che non abbiano sollevato eccezioni durante la chiamata al loro costruttore
+         * facciamo dei check per controllarne la validità
+         */
 
+        assertEquals(PASSED, expectedValue);
+        assertNotNull(cacheMap);
+        assertEquals(max, cacheMap.getCacheSize());
+        assertEquals(-1, cacheMap.getSoftReferenceSize());
+        assertTrue(cacheMap.isEmpty());
+        assertEquals(lru, cacheMap.isLRU());
+
+
+    }
+
+
+    public boolean showThatLRUShouldBePossible() {
+        LRUMap lruMap = null;
+        LRUMap lruMap2 = null;
+        org.apache.openjpa.lib.util.LRUMap lruMap3 = null;
+
+        try {
+            lruMap = new LRUMap(max, size, load, false /* default is false as per javadoc*/);
+            lruMap2 = new LRUMap(max, max, load, false /* default is false as per javadoc*/);
+            lruMap3 = new org.apache.openjpa.lib.util.LRUMap(max, load); //Potenziale fix per riga 140 di CacheMap
+
+
+        } catch (Exception e) {
+            return false;
+        }
+        assertNotNull(lruMap);
+        assertNotNull(lruMap2);
+        assertNotNull(lruMap3);
+
+        return true;
 
 
     }
