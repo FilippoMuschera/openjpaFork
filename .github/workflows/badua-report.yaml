@@ -31,6 +31,6 @@ jobs:
       - name: Archive badua report
         uses: actions/upload-artifact@v3
         with:
-          name: pit-mutation-report
+          name: badua-report
           path: openjpa-kernel/target/baduaReport.xml
           if-no-files-found: error
