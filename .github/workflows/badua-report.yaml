@@ -1,0 +1,35 @@
+name: Pit-Mutation Report
+
+on:
+  push:
+
+
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: 8
+          distribution: 'adopt'
+      - name: Install ba-dua
+        run: |
+          git clone --depth 1 --branch ba-dua-0.6.0 https://github.com/saeg/ba-dua
+          cd ba-dua
+          mvn install -DskipTests
+          cd ..       
+
+      - name: Generate badua report
+        run:  mvn clean install -P badua-profile -pl openjpa-kernel -am -B
+      - name: Archive badua report
+        uses: actions/upload-artifact@v3
+        with:
+          name: pit-mutation-report
+          path: openjpa-kernel/target/baduaReport.xml
+          if-no-files-found: error

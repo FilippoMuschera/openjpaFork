@@ -192,4 +192,146 @@
         </plugins>
     </build>
 
+    <profiles>
+<!--        Profilo per la creazione del report di ba-dua-->
+        <profile>
+            <id>badua-profile</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <badua.version>0.6.0</badua.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>br.usp.each.saeg</groupId>
+                    <artifactId>ba-dua-cli</artifactId>
+                    <version>${badua.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.10</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>br.usp.each.saeg</groupId>
+                                            <artifactId>ba-dua-agent-rt</artifactId>
+                                            <classifier>all</classifier>
+                                            <version>${badua.version}</version>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven.surefire.version}</version>
+                        <configuration>
+                            <argLine>-javaagent:target/dependency/ba-dua-agent-rt-${badua.version}-all.jar
+                                -Doutput.file=${project.build.directory}/badua.ser</argLine>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <trimStackTrace>false</trimStackTrace>
+                            <useSystemClassLoader>true</useSystemClassLoader>
+                            <excludes>
+                                <!-- exclude classes that include a $; inner classes
+                                     are not test cases per OpenJPA standards -->
+                                <exclude>org/apache/openjpa/**/*$*.class</exclude>
+                            </excludes>
+                            <systemProperties>
+                                <property>
+                                    <name>openjpa.Log</name>
+                                    <value>${openjpa.Log}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.DynamicEnhancementAgent</name>
+                                    <value>${openjpa.DynamicEnhancementAgent}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionDriverName</name>
+                                    <value>${connection.driver.name}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionURL</name>
+                                    <value>${connection.url}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionUserName</name>
+                                    <value>${connection.username}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionPassword</name>
+                                    <value>${connection.password}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.jdbc.DBDictionary</name>
+                                    <value>${jdbc.DBDictionary}</value>
+                                </property>
+                                <property>
+                                    <name>derby.stream.error.file</name>
+                                    <value>target/derby.log</value>
+                                </property>
+                                <property>
+                                    <name>derby.locks.deadlockTimeout</name>
+                                    <value>${derby.locks.deadlockTimeout}</value>
+                                </property>
+                                <property>
+                                    <name>derby.locks.waitTimeout</name>
+                                    <value>${derby.locks.waitTimeout}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.ConnectionProperties</name>
+                                    <value>${dbcp.args}</value>
+                                </property>
+                                <property>
+                                    <name>tests.openjpa.allowfailure</name>
+                                    <value>${tests.openjpa.allowfailure}</value>
+                                </property>
+                                <property>
+                                    <name>openjpa.jdbc.DriverDataSource</name>
+                                    <value>${tests.openjpa.driverDataSource}</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>create-badua-report</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>cmd</executable>
+                                    <arguments>
+                                        <argument>/c</argument>
+                                        <argument>java -jar "${settings.localRepository}\br\usp\each\saeg\ba-dua-cli\0.6.0\ba-dua-cli-0.6.0-all.jar" report -classes "${project.basedir}" --sc -input "${project.basedir}\target\badua.ser" -xml "${project.basedir}\target\baduaReport.xml"</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
