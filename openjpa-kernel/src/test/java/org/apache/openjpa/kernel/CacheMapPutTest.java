@@ -154,7 +154,10 @@ public class CacheMapPutTest {
         Object key = "key";
         Object value = "value";
 
-        this.cacheMap.put(key, value);
+        //Ritorna il valore che aveva precedentemente quella entry. Al primo tentativo voglio null perchè la cacheMap è vuota
+        //Al secondo voglio un notNull perchè ho già aggiunto la stessa entry ala riga prima, quindi mi aspetto che verrà ritornata quella
+        assertNull(this.cacheMap.put(key, value));
+        assertNotNull(this.cacheMap.put(key, value));
 
         assertTrue(this.cacheMap.containsKey(key));
         assertTrue(this.cacheMap.containsValue(value));
@@ -218,10 +221,6 @@ public class CacheMapPutTest {
             //usiamo la reflection per assicurarci che la entry pinned sia stata aggiornata
             assertTrue((Boolean) this.cacheMap.getClass().getMethod("pinnedMapContainsValue", Object.class).invoke(this.cacheMap, secondValue));
 
-            //testiamo ura l'unpin
-//            this.cacheMap.unpin(key);
-//            assertTrue(this.cacheMap.getPinnedKeys().isEmpty());
-
             //ora lo rimuoviamo
             this.cacheMap.remove(key);
             assertFalse(this.cacheMap.containsKey(key)); //ora è stato rimosso, non deve essere ancora in cache
@@ -229,6 +228,10 @@ public class CacheMapPutTest {
             //Avendo pinnato la sua key, ci aspettiamo che qual ora il suo valore venga aggiornato, lo ritroviamo come pinned
             this.cacheMap.put(key, value);
             assertTrue(this.cacheMap.getPinnedKeys().contains(key));
+
+            //testiamo ura l'unpin
+            this.cacheMap.unpin(key);
+            assertTrue(this.cacheMap.getPinnedKeys().isEmpty());
 
 
         }
@@ -243,5 +246,27 @@ public class CacheMapPutTest {
         //Non posso inserire oggetti in una Map di (max) size 0
         assertNull(this.cacheMap.put("", ""));
         this.cacheMap.setCacheSize(size);
+    }
+
+    @Test
+    public void testGet() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        //La get sposta la entry nella cacheMap principale se si trovava nella softCache.
+        String key = "key";
+        String value = "value";
+        assertFalse(this.cacheMap.containsKey(key) || this.cacheMap.containsValue(value)); //deve essere vuota
+        assertNull(this.cacheMap.get(key));
+
+        this.cacheMap.put(key, value);
+        this.cacheMap.put(0, 0); //ora (key, value) aggiunti alla riga sopra sono in softCache
+        assertTrue((Boolean) this.cacheMap.getClass().getMethod("isInSoftMap", Object.class).invoke(this.cacheMap, value));
+
+        //Eseguendo la get ritorna in cache principale
+        assertNotNull(this.cacheMap.get(key));
+        //Quindi in soft cache ci sarà l'altra entry
+        assertTrue((Boolean) this.cacheMap.getClass().getMethod("isInSoftMap", Object.class).invoke(this.cacheMap, 0));
+
+        //ora get dalla cache principale per estendere la coverage
+        assertNotNull(this.cacheMap.get(key));
+
     }
 }
