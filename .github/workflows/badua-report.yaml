@@ -1,4 +1,4 @@
-name: Pit-Mutation Report
+name: Ba-dua Report
 
 on:
   push:
@@ -22,14 +22,15 @@ jobs:
         run: |
           git clone --depth 1 --branch ba-dua-0.6.0 https://github.com/saeg/ba-dua
           cd ba-dua
-          mvn install -DskipTests
-          cd ..       
+          mvn install 
+          cd .. 
+          echo done!
 
       - name: Generate badua report
-        run:  mvn clean install -P badua-profile -pl openjpa-kernel -am -B
+        run:  mvn clean install -P badua-profile -pl openjpa-kernel -am -B -D rat.skip=true
       - name: Archive badua report
         uses: actions/upload-artifact@v3
         with:
-          name: pit-mutation-report
+          name: badua-report
           path: openjpa-kernel/target/baduaReport.xml
           if-no-files-found: error
