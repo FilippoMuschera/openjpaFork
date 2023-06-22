@@ -98,6 +98,7 @@
                     <threads>8</threads>
                     <targetClasses>
                         <param>org.apache.openjpa.kernel.AttachManager</param>
+                        <param>org.apache.openjpa.util.CacheMap</param>
                     </targetClasses>
                     <targetTests>
                         <param>org.apache.openjpa.kernel.*</param>
