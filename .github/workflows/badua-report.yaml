@@ -27,7 +27,7 @@ jobs:
           echo done!
 
       - name: Generate badua report
-        run:  mvn clean install -P badua-profile -pl openjpa-kernel -am -B
+        run:  mvn clean install -P badua-profile -pl openjpa-kernel -am -B -Drat.skip=true
       - name: Archive badua report
         uses: actions/upload-artifact@v3
         with:
