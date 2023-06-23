@@ -188,7 +188,7 @@ public class CacheMapTest {
         boolean isLru = (boolean) param[0];
         int initSize = (int) param[2];
         /*
-         * La seconda condition nell'if serve a settare i corretti valori di expected nel caso in cui
+         * La terza condition nell'if serve a settare i corretti valori di expected nel caso in cui
          * venisse implementato nel metodo una porzione di codice che fa effettivamente uso del parametro
          * concurrencyLevel. In quel caso assumiamo che un livello di concorrenza pari a 0 o maggiore di 0
          * sia accettabile, mentre un livello di concorrenza negativo dovrebbe portare a una IllegalArgument
@@ -236,7 +236,7 @@ public class CacheMapTest {
             } catch (AssertionError error) {
                 //Questo catch è per far passare il test, e quindi la build, al possibile bug.
                 //Qui ci assicuriamo che se entriamo nel catch sia esclusivamente per il caso del possibile bug, altrimenti
-                //lanciamo una fail del test come giusto che sia
+                //il test fallisce come giusto che sia
 
                 assertTrue(lru);
                 assertEquals(0, size);
@@ -294,6 +294,8 @@ public class CacheMapTest {
 
 
     }
+
+
 
 
 }
