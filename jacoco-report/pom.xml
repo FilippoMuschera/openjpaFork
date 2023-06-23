@@ -23,6 +23,46 @@
             <artifactId>openjpa-kernel</artifactId>
             <version>3.2.3-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-persistence</artifactId>
+            <version>3.2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-all</artifactId>
+            <version>3.2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-jdbc</artifactId>
+            <version>3.2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-jest</artifactId>
+            <version>3.2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-kubernetes</artifactId>
+            <version>3.2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-lib</artifactId>
+            <version>3.2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-persistence-jdbc</artifactId>
+            <version>3.2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-slice</artifactId>
+            <version>3.2.3-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 
