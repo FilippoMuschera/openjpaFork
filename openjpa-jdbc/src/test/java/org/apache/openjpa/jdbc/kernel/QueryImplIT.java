@@ -93,6 +93,12 @@ public class QueryImplIT {
      * della prima query, ma come un oggetto del tutto nuovo) ci aspettiamo che, finita l'esecuzione, in cache ci sia la seconda query,
      * mentre ci aspettiamo che la prima, non avendo più posto nella cache primaria, sia stata spostata in maniera trasparente
      * nella softMap della CacheMap.
+     *
+     * La terza interazione che andiamo a testare è invece quella di una query che non è cachable per le caratteristiche che possiede.
+     * Quello che ci aspettiamo che succeda non è solamente che non venga inserita nella cache insieme alle due query precedenti, ma
+     * ci aspettiamo che venga inserita nella CacheMap dove sono tenute in memoria tutte le query uncachable.
+     * Per generare una query che non è cachable sfruttiamo il mock di alcuni suoi metodi per fare in modo che, quando interrogati
+     * ritornino dei valori che non sono compatibili con il caching della query.
      */
 
     static PreparedQueryCacheImpl preparedQueryCache = new PreparedQueryCacheImpl();
@@ -102,7 +108,7 @@ public class QueryImplIT {
 
     @BeforeClass
     public static void setCacheMaps() throws NoSuchFieldException, IllegalAccessException {
-        //usiamo la reflection per settare le cache map
+        //usiamo la reflection per settare le cache map nella nostra istanza di PreparedQueryCacheImpl
 
         Field delegateField = PreparedQueryCacheImpl.class.getDeclaredField("_delegate");
         delegateField.setAccessible(true);
@@ -131,6 +137,8 @@ public class QueryImplIT {
         Log log = mock(Log.class);
         Compatibility compatibility = mock(Compatibility.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
+        JDBCStore jdbc = mock(JDBCStore.class);
+
 
         //Mock dei metodi
         when(delegBroker.getCachePreparedQuery()).thenReturn(true);
@@ -146,18 +154,19 @@ public class QueryImplIT {
         when(compatibility.getConvertPositionalParametersToNamed()).thenReturn(false);
         when(openJPAConfiguration.getMetaDataRepositoryInstance()).thenReturn(metaDataRepository);
         when(metaDataRepository.getMetaData((Class<?>) any(), any(), anyBoolean())).thenReturn(null);
-
-        //Costruiamo una query da registrare (e quindi cachare) con preparedQueryCache
-        JDBCStore jdbc = mock(JDBCStore.class);
-        StoreQuery storeQuery = new SQLStoreQuery(jdbc);
         when(jdbc.getDBDictionary()).thenReturn(new DBDictionary());
 
+
+        //Costruiamo una query da registrare (e quindi cachare) con preparedQueryCache
+        StoreQuery storeQuery = new SQLStoreQuery(jdbc);
         Query query = new org.apache.openjpa.kernel.QueryImpl(broker, QueryLanguages.LANG_PREPARED_SQL, storeQuery);
         query.setQuery("SELECT ? from someDB"); //settiamo un generico testo della query. L'unica parte importante è la "SELECT", per far si che
         //venga riconosciuta come una query valida
 
         Query spiedQuery = Mockito.spy(query);
         doReturn(Arrays.asList("done", "this is the result")).when(spiedQuery).execute(any(Map.class));//simuliamo il ritorno dell' exec della query
+
+        //Istanziamo QueryImpl, a cui "attacchiamo" la nostra istanza di PreparedQueryCacheImpl
         org.apache.openjpa.persistence.QueryImpl queryImpl = new QueryImpl(new EntityManagerImplExt(preparedQueryCache), spiedQuery );
 
         //Questo non è una sorta di "mock", è solo che il metodo per settare l'id è package private, e trovandomi in un
@@ -179,6 +188,7 @@ public class QueryImplIT {
         //se la query è cachable oppure no, e controlliamo questo comportamento tramite gli altri metodi mockati.
         PowerMockito.when(preparedQueryMock.initialize(any())).thenCallRealMethod();
         PowerMockito.doCallRealMethod().when(preparedQueryMock, "extractSelectExecutor", any());
+        //mock del costruttore
         PowerMockito.whenNew(PreparedQueryImpl.class).withArguments(anyString(), any(DelegatingQuery.class)).thenReturn(preparedQueryMock);
 
         queryImpl.compile(); //compilo la query
@@ -186,17 +196,18 @@ public class QueryImplIT {
         //La cache prima dell'esecuzione deve ancora essere vuota. Non abbiamo richiesto nessun inserimento ne eseguito nessuna query
         assertEquals(0, delegate.getTotalSize());
         assertEquals(0, uncachables.getTotalSize());
-        queryImpl.getResultList();
+        //eseguiamo la query
+        queryImpl.getResultList(); //ne ignoriamo il risultato dato che non è quello il focus del test
+
         assertEquals(1, delegate.getMainCacheSize()); //deve esserci la query in cache ora
         assertEquals(0, uncachables.getTotalSize()); //non deve essere finita tra gli uncachable
-
         assertTrue(delegate.containsKey(idString));
+        //controlliamo che l'oggetto cachato sia quello che ci aspettiamo (ovvero la PreparedQuery costruita a partire dalla nostra QueryImpl)
         PreparedQueryImpl fromCache = (PreparedQueryImpl) delegate.get(idString);
         assertEquals(preparedQueryMock, fromCache);
-
         assertEquals(preparedQueryCache.get(idString), fromCache);
 
-        //Seconda query
+        //Seconda query, con id diverso dalla prima
 
         org.apache.openjpa.persistence.QueryImpl queryImpl2 = new QueryImpl(new EntityManagerImplExt(preparedQueryCache), spiedQuery );
         String idString2 = idString + 2;
@@ -209,7 +220,7 @@ public class QueryImplIT {
         assertTrue(delegate.isInSoftCache(idString));
         assertEquals(1, delegate.getSoftMapSize());
 
-        //Terza query
+        //Terza query, non cachabile
         PowerMockito.when(preparedQueryMock.isInitialized()).thenReturn(false); //in questo modo la query non sarà cachabile
         org.apache.openjpa.persistence.QueryImpl queryImpl3 = new QueryImpl(new EntityManagerImplExt(preparedQueryCache), spiedQuery );
         String idString3 = idString + 3;
@@ -217,8 +228,8 @@ public class QueryImplIT {
         PowerMockito.when(preparedQueryMock.getIdentifier()).thenReturn(idString3);
         queryImpl3.compile();
         queryImpl3.getResultList();
-        assertEquals(1, uncachables.getTotalSize());
-        assertEquals(2, delegate.getTotalSize());
+        assertEquals(1, uncachables.getTotalSize()); //deve effettivamente essere tra gli uncachable
+        assertEquals(2, delegate.getTotalSize()); //il numero di query realmente cached non deve essere cambiato
 
 
 
