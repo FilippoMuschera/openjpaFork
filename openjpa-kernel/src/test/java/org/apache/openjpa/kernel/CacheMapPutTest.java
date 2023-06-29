@@ -175,7 +175,7 @@ public class CacheMapPutTest {
 
         this.cacheMap.put(key, value);
         /*
-         * In questo test sfruttiamo la reflection per invocare un metodo, da oi definito, che ci restituisce la size
+         * In questo test sfruttiamo la reflection per invocare un metodo, da noi definito, che ci restituisce la size
          * reale della softMap. Quello definito in CacheMap infatti ritorna solamente la maxSize della softMap.
          * Lo facciamo perchè quello che vogliamo controllare in questo test è il passaggio delle entry dalla cacheMap
          * principale a quella soft, quando quella principale è piena.
@@ -245,7 +245,7 @@ public class CacheMapPutTest {
         this.cacheMap.setCacheSize(0);
         //Non posso inserire oggetti in una Map di (max) size 0
         assertNull(this.cacheMap.put("", ""));
-        this.cacheMap.setCacheSize(size);
+        this.cacheMap.setCacheSize(size); //resetta la size della cacheMap per gli altri test
     }
 
     @Test

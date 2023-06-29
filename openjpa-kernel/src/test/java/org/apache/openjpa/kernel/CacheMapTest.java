@@ -42,6 +42,27 @@ package org.apache.openjpa.kernel;
  */
 
 
+
+
+import org.apache.openjpa.kernel.utility.Values;
+import org.apache.openjpa.lib.util.collections.LRUMap;
+import org.apache.openjpa.util.CacheMap;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.IA_EXCEPTION;
+import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.PASSED;
+import static org.junit.Assert.*;
+
+@RunWith(Parameterized.class)
+public class CacheMapTest {
+
 /*
  *                                          ++++ POSSIBILE BUG ++++
  *
@@ -61,7 +82,7 @@ package org.apache.openjpa.kernel;
  * Procedendo ad un'analisi di tipo white-box notiamo una incongruenza nel modo in cui viene istanziata la LRUMap.
  * Partiamo dal presupposto che in CacheMap il parametro "max" rappresenta la size massima della cache, e il parametro
  * "size" rappresenta la dimensione inizale della cache. Questo si può inturire anche dal costruttore di CacheMap che
- * troviamo a riga 92. dove data una maxSize, si pone size = maxSize/2.
+ * troviamo a riga 92, dove data una maxSize, si pone size = maxSize/2.
  *
  * Abbiamo già notato a riga 140 "cacheMap = new LRUMap(size, load)". Quindi sembra che stiamo chiedendo una LRUMap con
  * dimensione iniziale pari a "size".
@@ -111,26 +132,6 @@ package org.apache.openjpa.kernel;
  * Inoltre, dimostriamo come, se a riga 140 di CacheMap chiamassimo LRUMap(max, load) invece che LRUMap(size, load), la LRUMap
  * verrebbe istanziata senza produrre alcuna IllegalArgumentException.
  */
-
-
-import org.apache.openjpa.kernel.utility.Values;
-import org.apache.openjpa.lib.util.collections.LRUMap;
-import org.apache.openjpa.util.CacheMap;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.IA_EXCEPTION;
-import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.PASSED;
-import static org.junit.Assert.*;
-
-@RunWith(Parameterized.class)
-public class CacheMapTest {
 
 
     private static final List<Integer> intList = Arrays.asList(-1, 0, 1);

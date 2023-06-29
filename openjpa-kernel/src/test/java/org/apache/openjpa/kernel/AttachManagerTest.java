@@ -212,7 +212,7 @@ public class AttachManagerTest {
          * Ci interessa infatti testare che il nostro AttachManager lanci la procedura di attach, e che quindi poi
          * l'oggetto di cui abbiamo richiesto l'attach lo risulti davvero dopo che chiamiamo "setAttachCopy(...).
          * La procedura di attach viene implementata dall'oggetto AttachStrategy. Essendo questo uno UnitTest, mockiamo
-         * il comportamento della classe AttachStrategy, simulando la riuscita dell'attach da parte dua.
+         * il comportamento della classe AttachStrategy, simulando la riuscita dell'attach da parte sua.
          */
         Object attachedList;
             try (MockedStatic<ImplHelper> mockedStatic = Mockito.mockStatic(ImplHelper.class)) {
@@ -238,10 +238,10 @@ public class AttachManagerTest {
 
 
         } catch (NullPointerException nullPointerException) {
-            assertEquals(this.expectedValue, NP_EXCEPTION);
+            assertEquals(NP_EXCEPTION, this.expectedValue);
             return;
         } catch (RuntimeException runtimeException) {
-            assertEquals(this.expectedValue, RUNTIME_EXCEPTION);
+            assertEquals(RUNTIME_EXCEPTION, this.expectedValue);
             return;
         }
 
