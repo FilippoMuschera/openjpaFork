@@ -59,6 +59,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.openjpa.kernel.utility.LockChecker.tryLock;
 import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.IA_EXCEPTION;
 import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.PASSED;
 import static org.junit.Assert.*;
@@ -219,7 +220,7 @@ public class CacheMapTest {
     }
 
     @Test
-    public void constructionTest() {
+    public void constructionTest() throws InterruptedException {
 
         System.out.printf("[DEBUG] lru: %s, max: %d, size: %d, load: %f, ev:%s\n", lru, max, size, load, expectedValue);
         System.out.println("[DEBUG] Test #" + testCounter + "\n");
@@ -273,6 +274,7 @@ public class CacheMapTest {
         assertEquals(-1, cacheMap.getSoftReferenceSize());
         assertTrue(cacheMap.isEmpty());
         assertEquals(lru, cacheMap.isLRU());
+        assertTrue(tryLock(cacheMap));
 
 
     }

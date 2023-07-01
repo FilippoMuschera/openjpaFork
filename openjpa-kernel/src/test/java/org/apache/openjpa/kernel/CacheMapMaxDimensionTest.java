@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.openjpa.kernel.utility.LockChecker.tryLock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -83,7 +84,7 @@ public class CacheMapMaxDimensionTest {
     }
 
     @Test
-    public  void testSize() {
+    public  void testSize() throws InterruptedException {
 
         cacheMap.put(1,1);
         assertEquals(0, cacheMap.getSoftMapSize()); //la entry deve aver preso il posto disponibile nella cacheMap
@@ -106,6 +107,23 @@ public class CacheMapMaxDimensionTest {
                 cacheMap.getMainCacheSize(), cacheMap.getSoftMapSize(), cacheMap.getTotalSize());
         assertTrue(cacheMap.getMainCacheSize() == max && cacheMap.getSoftMapSize() == cacheMap.getTotalSize() - cacheMap.getMainCacheSize());
 
+
+        assertTrue(tryLock(cacheMap));
+
+    }
+
+    @Test
+    public void softMapDimensionTest() throws InterruptedException {
+        //tryLock controlla che il metodo di cacheMap abbia gestito correttamente i lock
+        cacheMap.setSoftReferenceSize(1);
+        assertTrue(tryLock(cacheMap));
+        assertEquals(1, cacheMap.getSoftReferenceSize());
+        assertTrue(tryLock(cacheMap));
+
+        cacheMap.setSoftReferenceSize(-1);
+        assertTrue(tryLock(cacheMap));
+        assertEquals(-1, cacheMap.getSoftReferenceSize());
+        assertTrue(tryLock(cacheMap));
 
     }
 

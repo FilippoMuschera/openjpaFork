@@ -26,6 +26,7 @@ package org.apache.openjpa.kernel;
  */
 
 import org.apache.openjpa.util.CacheMap;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +38,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.openjpa.kernel.utility.LockChecker.tryLock;
 import static org.junit.Assert.*;
 
 @RunWith(Parameterized.class)
@@ -155,6 +157,11 @@ public class CacheMapPutTest {
         assertEquals(0, this.cacheMap.entrySet().size());
     }
 
+    @After
+    public void afterCheck() throws InterruptedException {
+        assertTrue(tryLock(cacheMap));
+    }
+
     @Test
     public void putTest() {
         Object key = "key";
@@ -247,11 +254,15 @@ public class CacheMapPutTest {
     }
 
     @Test
-    public void noHardRefsCache() {
+    public void noHardRefsCache() throws InterruptedException {
         this.cacheMap.setCacheSize(0);
         //Non posso inserire oggetti in una Map di (max) size 0
+        assertTrue(tryLock(this.cacheMap)); //Aggiunto per PIT
+        assertEquals(0, cacheMap.getCacheSize()); //aggiunto per PIT
         assertNull(this.cacheMap.put("", ""));
         this.cacheMap.setCacheSize(size); //resetta la size della cacheMap per gli altri test
+        assertEquals(size, cacheMap.getCacheSize());
+        assertTrue(tryLock(this.cacheMap));
     }
 
     @Test
@@ -275,4 +286,5 @@ public class CacheMapPutTest {
         assertNotNull(this.cacheMap.get(key));
 
     }
+
 }
