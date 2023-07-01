@@ -20,12 +20,15 @@
 package org.apache.openjpa.kernel;
 
 import org.apache.openjpa.util.CacheMap;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -36,6 +39,8 @@ public class CacheMapMaxDimensionTest {
     private final static int size = 3;
     private final static int max = size/2;
     private static CacheMapExt cacheMap;
+    @Rule
+    public Timeout timeout = new Timeout(2, TimeUnit.SECONDS); //Per PIT
 
     /*
      * Breve test per acquisire confidenza sul fatto che venga gestita correttamente la dimensione massima della CacheMap

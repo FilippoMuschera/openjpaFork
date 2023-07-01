@@ -95,6 +95,7 @@
                     <parseSurefireConfig>false</parseSurefireConfig>
                     <maxMutationsPerClass>1</maxMutationsPerClass>
                     <verbose>false</verbose>
+                    <timeoutConstant>10000</timeoutConstant>
                     <threads>8</threads>
                     <targetClasses>
                         <param>org.apache.openjpa.kernel.AttachManager</param>

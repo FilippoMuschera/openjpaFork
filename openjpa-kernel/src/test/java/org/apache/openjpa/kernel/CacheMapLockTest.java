@@ -21,7 +21,9 @@ package org.apache.openjpa.kernel;
 
 
 import org.apache.openjpa.util.CacheMap;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -53,6 +55,9 @@ public class CacheMapLockTest {
 
     private final CacheMap cacheMap;
 
+    @Rule
+    public Timeout timeout = new Timeout(5, TimeUnit.SECONDS); //Per PIT
+
 
     @Parameterized.Parameters
     public static Collection<CacheMap> buildMaps() {
@@ -77,7 +82,7 @@ public class CacheMapLockTest {
         this.cacheMap = map;
     }
 
-    @Test(timeout = 10000)
+    @Test
     public void readLockTest() throws InterruptedException {
         //Test su lettura concorrente
         //Il test avrà successo solo se (come ci si aspetta) sarà possibile eseguire letture concorrenti sulla CacheMap.
@@ -132,7 +137,7 @@ public class CacheMapLockTest {
 
     }
 
-    @Test(timeout = 10000)
+    @Test
     public void orderedAccessTest() throws InterruptedException {
         /*
          * Vogliamo controllare che, qualora ci fossero più richieste di lock attive per la CacheMap, venga rispettato

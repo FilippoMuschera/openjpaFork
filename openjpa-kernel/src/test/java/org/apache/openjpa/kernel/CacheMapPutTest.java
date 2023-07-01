@@ -27,12 +27,15 @@ package org.apache.openjpa.kernel;
 
 import org.apache.openjpa.util.CacheMap;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -47,6 +50,9 @@ public class CacheMapPutTest {
     private static final int concLevel = 0; //è un don't care in realtà, andrebbe bene anche un valore negativo allo stato attuale della classe
     //ma in vista di un'eventuale modifica all'implementazione del costruttore di CacheMap, dove si farà uso anche di questo parametro,
     //scegliamo un valore che dovrebbe poter essere valido, in modo da mantenere anche in questo caso la validità del test
+
+    @Rule
+    public Timeout timeout = new Timeout(3, TimeUnit.SECONDS); //Per PIT
 
     private final CacheMap cacheMap;
 

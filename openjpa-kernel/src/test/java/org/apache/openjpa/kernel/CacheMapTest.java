@@ -47,7 +47,9 @@ package org.apache.openjpa.kernel;
 import org.apache.openjpa.kernel.utility.Values;
 import org.apache.openjpa.lib.util.collections.LRUMap;
 import org.apache.openjpa.util.CacheMap;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -55,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.IA_EXCEPTION;
 import static org.apache.openjpa.kernel.utility.Values.ExpectedValue.PASSED;
@@ -145,6 +148,8 @@ public class CacheMapTest {
     private final float load;
     private final int concurrencyLevel;
     private final Values.ExpectedValue expectedValue;
+    @Rule
+    public Timeout timeout = new Timeout(2, TimeUnit.SECONDS); //Per PIT
 
 
     public CacheMapTest(boolean lru, int max, int size, float load, int concurrencyLevel, Values.ExpectedValue ev) {
