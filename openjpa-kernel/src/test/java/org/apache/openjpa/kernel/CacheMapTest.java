@@ -197,19 +197,33 @@ public class CacheMapTest {
         /*
          * La terza condition nell'if serve a settare i corretti valori di expected nel caso in cui
          * venisse implementato nel metodo una porzione di codice che fa effettivamente uso del parametro
-         * concurrencyLevel. In quel caso assumiamo che un livello di concorrenza pari a 0 o maggiore di 0
-         * sia accettabile, mentre un livello di concorrenza negativo dovrebbe portare a una IllegalArgument
+         * concurrencyLevel. In quel caso assumiamo che un livello di concorrenza maggiore di 0
+         * sia accettabile, mentre un livello di concorrenza <= 0 dovrebbe portare a una IllegalArgument
          * exception, dal momento che è difficile giustificare il significato di un livello di concorrenza
-         * negativo, in linea con ciò che avviene attualmente per il parametro load.
+         * di questo tipo. Si considera infatti che concurrencyLevel possa rappresentare il numero di thread concorrenti
+         * che possono accedere alla cache, quindi un numero <= 0 renderebbe impossibile aggiornare la cache, e sarebbe quindi
+         * scorretto.
          *
+         * Nota: Per concurrencyLevel sono generati i vari test, ma non essendo al momento usato dal metodo, non posso mettere
+         * che se il suo valore è scorretto mi aspetto un'eccezione. Quindi è stata introdotta la variabile isConcurrencyLevelUsed,
+         * cha al momento è false. Se il parametro concurrencyLevel dovesse essere utilizzato nel codice del costruttore
+         * allora basterebbe cambiare il valore di isConcurrencyLevelUsed = true, in modo che vengano settati correttamente
+         * anche gli expected value per quel parametro. Idealmente si potrebbe mettere un commento che rimanda a questo nel
+         * codice sorgente, che però si preferisce non toccare. Forse si potrebbe anche "automatizzare" questo controllo
+         * tramite tool per l'analisi del byte code, ma sarebbe probabilmente un effort eccessivo e complicherebbe abbastanza
+         * il codice del test.
+         *
+         */
+
+        /*
          * Una lista di input genererà IA Exception se:
-         * 1. load <= 0 non è consentito
+         * 1. load <= 0: non è consentito
          * 2.Una LRU, allo stato attuale del codice non può avere una maxSize = 0. Per i motivi sopra illustrati
          * la maxSize viene settata usando la size (qui chiamata initSize). Quindi se è negativa viene settata
          * arbitrariamente a 500 da CacheMap, se è positiva è ok, se è = 0, per la LRU non va bene.
          *
          */
-        if (load <= 0 || (isLru && initSize == 0) || (isConcurrencyLevelUsed && (int) param[4] < 0))
+        if (load <= 0 || (isLru && initSize == 0) || (isConcurrencyLevelUsed && (int) param[4] <= 0))
             expectedValue = IA_EXCEPTION;
 
 
