@@ -139,7 +139,7 @@ public class CacheMapTest {
 
 
     private static final List<Integer> intList = Arrays.asList(-1, 0, 1);
-    private static final List<Float> floatList = Arrays.asList(-0.1f, 0f, 0.1f);
+    private static final List<Float> floatList = Arrays.asList(-0.1f, 0f, 0.1f, 1.1f);
     private static final List<Boolean> booleanList = Arrays.asList(true, false);
     private static final boolean isConcurrencyLevelUsed = false;
     private static int testCounter = 0;
@@ -150,7 +150,7 @@ public class CacheMapTest {
     private final int concurrencyLevel;
     private final Values.ExpectedValue expectedValue;
     @Rule
-    public Timeout timeout = new Timeout(2, TimeUnit.SECONDS); //Per PIT
+    public Timeout timeout = new Timeout(2, TimeUnit.SECONDS); //Per PIT, così ho killed invece che timed out
 
 
     public CacheMapTest(boolean lru, int max, int size, float load, int concurrencyLevel, Values.ExpectedValue ev) {
@@ -195,7 +195,7 @@ public class CacheMapTest {
         boolean isLru = (boolean) param[0];
         int initSize = (int) param[2];
         /*
-         * La terza condition nell'if serve a settare i corretti valori di expected nel caso in cui
+         * La quarta condition nell'if serve a settare i corretti valori di expected nel caso in cui
          * venisse implementato nel metodo una porzione di codice che fa effettivamente uso del parametro
          * concurrencyLevel. In quel caso assumiamo che un livello di concorrenza maggiore di 0
          * sia accettabile, mentre un livello di concorrenza <= 0 dovrebbe portare a una IllegalArgument
@@ -210,8 +210,8 @@ public class CacheMapTest {
          * allora basterebbe cambiare il valore di isConcurrencyLevelUsed = true, in modo che vengano settati correttamente
          * anche gli expected value per quel parametro. Idealmente si potrebbe mettere un commento che rimanda a questo nel
          * codice sorgente, che però si preferisce non toccare. Forse si potrebbe anche "automatizzare" questo controllo
-         * tramite tool per l'analisi del byte code, ma sarebbe probabilmente un effort eccessivo e complicherebbe abbastanza
-         * il codice del test.
+         * tramite tool per l'analisi del byte code, per verificare se il parametro concurrencyLevel viene usato nel corpo del metodo,
+         * ma sarebbe probabilmente un effort eccessivo e complicherebbe abbastanza il codice del test.
          *
          */
 
@@ -223,7 +223,7 @@ public class CacheMapTest {
          * arbitrariamente a 500 da CacheMap, se è positiva è ok, se è = 0, per la LRU non va bene.
          *
          */
-        if (load <= 0 || (isLru && initSize == 0) || (isConcurrencyLevelUsed && (int) param[4] <= 0))
+        if (load <= 0.0f || load > 1.0f || (isLru && initSize == 0) || (isConcurrencyLevelUsed && (int) param[4] <= 0))
             expectedValue = IA_EXCEPTION;
 
 
