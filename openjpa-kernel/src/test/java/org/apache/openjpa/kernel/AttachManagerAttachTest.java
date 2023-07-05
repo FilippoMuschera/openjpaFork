@@ -30,7 +30,10 @@ import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static org.apache.openjpa.kernel.AttachManagerTest.validBroker;
@@ -38,6 +41,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AttachManagerAttachTest {
 
@@ -225,7 +229,7 @@ public class AttachManagerAttachTest {
 
     @Test
     public void attachHandlingCascade() {
-        callback = (op, arg, sm) -> {
+        OpCallbacks callback2 = (op, arg, sm) -> {
             System.out.println("...Mocking the processing argument method...");
             return OpCallbacks.ACT_CASCADE;
         };
@@ -242,7 +246,7 @@ public class AttachManagerAttachTest {
 
         Object attached = new Object();
         try {
-            attachManager = new AttachManager(mockedBroker, copyNew, callback);
+            attachManager = new AttachManager(mockedBroker, copyNew, callback2);
             attached = attachManager.attach(objList, mock(PersistenceCapable.class), mock(OpenJPAStateManager.class),
                     mock(ValueMetaData.class), true);
         } catch (Exception e) {
@@ -250,6 +254,38 @@ public class AttachManagerAttachTest {
             fail("No exception expected");
         }
         assertEquals(objList, attached);
+
+
+    }
+
+    @Test
+    public void visitedNodeContainsTest() throws NoSuchFieldException, IllegalAccessException {
+        //Test realizzato dopo report badua/jacoco
+
+        OpCallbacks callback2 = (op, arg, sm) -> {
+            System.out.println("...Mocking the processing argument method...");
+            return OpCallbacks.ACT_CASCADE;
+        };
+
+
+        String toAttach = "toAttach";
+        StateManagerImpl stateManager = mock(StateManagerImpl.class);
+        BrokerImpl anotherBroker = validBroker(2); //dovendo aggiungere dei mock usiamo un broker diverso per
+        //non influenzare gli altri test
+        when(anotherBroker.getStateManagerImpl(toAttach, true)).thenReturn(stateManager);
+        when(anotherBroker.getStateManager(toAttach)).thenReturn(stateManager);
+
+        //facciamo in modo che risulti che toAttach sia già stato visitato durante un'operazione di attach
+        Field visited = AttachManager.class.getDeclaredField("_visitedNodes");
+        visited.setAccessible(true);
+        AttachManager manipulatedAttachManager = new AttachManager(anotherBroker, copyNew, callback2);
+        Collection<StateManagerImpl> newVisitedList = new ArrayList<>();
+        newVisitedList.add(anotherBroker.getStateManagerImpl(toAttach, true));
+        visited.set(manipulatedAttachManager, newVisitedList);
+
+        //ora controlliamo che ci venga restituito ciò che ci si aspetta dal branch che stiamo esplorando
+        assertEquals(toAttach, manipulatedAttachManager.attach(toAttach));
+
 
 
     }
