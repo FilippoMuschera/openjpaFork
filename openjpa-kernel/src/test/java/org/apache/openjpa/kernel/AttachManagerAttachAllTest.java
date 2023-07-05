@@ -20,6 +20,7 @@
 
 package org.apache.openjpa.kernel;
 
+import org.apache.openjpa.enhance.PersistenceCapable;
 import org.apache.openjpa.lib.util.Localizer;
 import org.apache.openjpa.meta.ClassMetaData;
 import org.apache.openjpa.meta.FieldMetaData;
@@ -29,21 +30,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 import static org.apache.openjpa.kernel.AttachManagerTest.validBroker;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AttachManagerAttachAllTest {
 
     BrokerImpl broker;
     boolean copyNew;
     OpCallbacks callback;
+    private static int wasAfterAttachInvoked = 0;
 
 
     @Before
@@ -51,6 +51,7 @@ public class AttachManagerAttachAllTest {
         broker = validBroker(2 /*failfast = yes*/);
         copyNew = true;
         callback = (op, arg, sm) -> OpCallbacks.ACT_CASCADE;
+        wasAfterAttachInvoked = 0;
     }
 
     @Test
@@ -231,6 +232,63 @@ public class AttachManagerAttachAllTest {
         fail("(Multiple) exceptions expected");
 
     }
+
+
+    @Test
+    public void chackInvokefterException() throws NoSuchFieldException, IllegalAccessException {
+        //Test realizzato dopo report PIT
+
+        List<String> toAttach = new ArrayList<>();
+        toAttach.add("foo");
+        toAttach.add("bar");
+
+
+        OpCallbacks callback2 = (op, arg, sm) -> {
+            System.out.println("...Mocking the processing argument method...");
+            return OpCallbacks.ACT_CASCADE;
+        };
+
+        BrokerImpl anotherBroker = validBroker(2);
+        StateManagerImpl stateManager = mock(StateManagerImpl.class);
+
+
+        when(anotherBroker.getStateManagerImpl(any(), anyBoolean())).thenReturn(stateManager);
+        when(anotherBroker.getStateManager(toAttach)).thenReturn(stateManager);
+        when(stateManager.isNew()).thenReturn(false);
+
+
+        AttachManager manipulatedAttachManager = new AttachManager(anotherBroker, copyNew, callback2);
+        manipulatedAttachManager.setAttachedCopy(toAttach, mock(PersistenceCapable.class)); //_attached ora ha size = 1
+
+
+        /*
+         * A questo punto abbiamo un attachManager che risulta gestire già l'ogetto toAttach. Ora vogliamo invocare
+         * la attachAll, fare in modo che venga invocata la invokeAfterAttac(), e controllare che venga effettuata la
+         * chiamata al postAttach di toAttach.
+         */
+
+
+        when(anotherBroker.fireLifecycleEvent(any(), any(), any(), anyInt())).thenAnswer(invocation -> {
+
+            wasAfterAttachInvoked += 1;
+
+            return true;
+        });
+        Object[] ret = null;
+        try {
+            ret = manipulatedAttachManager.attachAll(Collections.emptyList());
+
+        } catch (Exception e) {
+            fail("No exception expected here");
+        }
+        assertEquals(1, wasAfterAttachInvoked);
+        assertEquals(0, ret.length);
+
+    }
+
+
+
+
 
 
 
