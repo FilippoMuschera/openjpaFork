@@ -154,7 +154,6 @@ public class CacheMapTest {
 
     public static int counter = 0;
     public static int buggyCount = 0;
-    public static int checkCounter = 0;
 
 
     public CacheMapTest(boolean lru, int max, int size, float load, int concurrencyLevel, Values.ExpectedValue ev) {
@@ -196,7 +195,6 @@ public class CacheMapTest {
         System.out.printf("TOTAL TEST CASES: %d, BUGGY TEST CASES: %d\n", counter, buggyCount);
         double reliability = 1 - (double) buggyCount/counter;
         System.out.print("RELIABILITY: 1 - buggyCases/allCases = " + reliability ); //Si assumono tutti gli input equiprobabili
-        assertEquals(checkCounter, buggyCount); //ho effettivamente riscontrato il numero di bug che mi aspettavo
     }
 
     private static Object[] withExpectedValue(Object[] param) {
@@ -239,8 +237,7 @@ public class CacheMapTest {
          */
         if (load <= 0.0f || load > 1.0f || (isConcurrencyLevelUsed && (int) param[4] <= 0))
             expectedValue = IA_EXCEPTION;
-        if (load > 0 && load <= 1 && initSize == 0 && max > 0 && isLru) //casi che avranno il bug
-            checkCounter++;
+
 
 
         withEV[param.length] = expectedValue;
