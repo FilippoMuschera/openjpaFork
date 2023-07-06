@@ -47,6 +47,7 @@ package org.apache.openjpa.kernel;
 import org.apache.openjpa.kernel.utility.Values;
 import org.apache.openjpa.lib.util.collections.LRUMap;
 import org.apache.openjpa.util.CacheMap;
+import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -142,7 +143,6 @@ public class CacheMapTest {
     private static final List<Float> floatList = Arrays.asList(-0.1f, 0f, 0.1f, 1.1f);
     private static final List<Boolean> booleanList = Arrays.asList(true, false);
     private static final boolean isConcurrencyLevelUsed = false;
-    private static int testCounter = 0;
     private final boolean lru;
     private final int max;
     private final int size;
@@ -151,6 +151,10 @@ public class CacheMapTest {
     private final Values.ExpectedValue expectedValue;
     @Rule
     public Timeout timeout = new Timeout(2, TimeUnit.SECONDS); //Per PIT, così ho killed invece che timed out
+
+    public static int counter = 0;
+    public static int buggyCount = 0;
+    public static int checkCounter = 0;
 
 
     public CacheMapTest(boolean lru, int max, int size, float load, int concurrencyLevel, Values.ExpectedValue ev) {
@@ -182,8 +186,17 @@ public class CacheMapTest {
             }
         }
 
+        counter = retList.size();
         return retList;
 
+    }
+
+    @AfterClass
+    public static void printStats() {
+        System.out.printf("TOTAL TEST CASES: %d, BUGGY TEST CASES: %d\n", counter, buggyCount);
+        double reliability = 1 - (double) buggyCount/counter;
+        System.out.print("RELIABILITY: 1 - buggyCases/allCases = " + reliability ); //Si assumono tutti gli input equiprobabili
+        assertEquals(checkCounter, buggyCount); //ho effettivamente riscontrato il numero di bug che mi aspettavo
     }
 
     private static Object[] withExpectedValue(Object[] param) {
@@ -194,6 +207,7 @@ public class CacheMapTest {
         float load = (float) param[3];
         boolean isLru = (boolean) param[0];
         int initSize = (int) param[2];
+        int max = (int) param[1];
         /*
          * La quarta condition nell'if serve a settare i corretti valori di expected nel caso in cui
          * venisse implementato nel metodo una porzione di codice che fa effettivamente uso del parametro
@@ -223,8 +237,10 @@ public class CacheMapTest {
          * arbitrariamente a 500 da CacheMap, se è positiva è ok, se è = 0, per la LRU non va bene.
          *
          */
-        if (load <= 0.0f || load > 1.0f || (isLru && initSize == 0) || (isConcurrencyLevelUsed && (int) param[4] <= 0))
+        if (load <= 0.0f || load > 1.0f || (isConcurrencyLevelUsed && (int) param[4] <= 0))
             expectedValue = IA_EXCEPTION;
+        if (load > 0 && load <= 1 && initSize == 0 && max > 0 && isLru) //casi che avranno il bug
+            checkCounter++;
 
 
         withEV[param.length] = expectedValue;
@@ -235,10 +251,6 @@ public class CacheMapTest {
 
     @Test
     public void constructionTest() throws InterruptedException {
-
-        System.out.printf("[DEBUG] lru: %s, max: %d, size: %d, load: %f, ev:%s\n", lru, max, size, load, expectedValue);
-        System.out.println("[DEBUG] Test #" + testCounter + "\n");
-        testCounter++;
 
         CacheMap cacheMap = null;
         try {
@@ -262,6 +274,7 @@ public class CacheMapTest {
                 assertTrue(lru);
                 assertEquals(0, size);
                 assertTrue(load > 0);
+                assertTrue(load <= 1);
                 assertTrue(e.getMessage().contains("LRUMap max size must be greater than 0"));
 
                 /*
@@ -312,6 +325,7 @@ public class CacheMapTest {
         assertNotNull(lruMap2);
         assertNotNull(lruMap3);
 
+        buggyCount++;
         return true;
 
 
